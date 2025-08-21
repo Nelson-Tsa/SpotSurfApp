@@ -1,37 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 
-class SpotCard extends StatelessWidget {
+class SpotCard extends StatefulWidget {
   final SurfSpot spot;
+  final bool showLike;
 
-  const SpotCard({super.key, required this.spot});
+  const SpotCard({super.key, required this.spot, this.showLike = true});
 
+  @override
+  State<SpotCard> createState() => _SpotCardState();
+}
+
+class _SpotCardState extends State<SpotCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 4.0,
-      clipBehavior: Clip
-          .antiAlias, // Pour que l'image respecte les coins arrondis de la carte
+      clipBehavior: Clip.antiAlias,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment
-            .stretch, // Pour que l'image prenne toute la largeur
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: Image.asset(
-              spot.imageUrl,
-              fit: BoxFit
-                  .cover, // Pour que l'image remplisse l'espace disponible
-            ),
-          ),
+          Expanded(child: Image.asset(widget.spot.imageUrl, fit: BoxFit.cover)),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
                 Text(
-                  spot.name,
+                  widget.spot.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text(spot.description),
+                Text(widget.spot.description),
+                if (widget.showLike)
+                  IconButton(
+                    icon: Icon(
+                      widget.spot.isLiked ?? false
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: Colors.blue,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        widget.spot.isLiked = !(widget.spot.isLiked ?? false);
+                      });
+                    },
+                  ),
               ],
             ),
           ),

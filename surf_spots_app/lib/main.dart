@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
-import 'package:surf_spots_app/widgets/tittle.dart'; // Importer le widget Tittle
-import 'package:surf_spots_app/widgets/searchbar.dart'; // Importer le widget SearchBar
-import 'package:surf_spots_app/widgets/counter_display.dart'; // Importer le widget d'affichage
+import 'package:surf_spots_app/widgets/tittle.dart';
+import 'package:surf_spots_app/widgets/searchbar.dart';
+import 'package:surf_spots_app/widgets/counter_display.dart';
+import 'package:surf_spots_app/widgets/grid.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,11 +13,10 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Ce widget est la racine de votre application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Surf Spots App',
       theme: ThemeData(
         // C'est le thème de votre application.
         colorScheme: ColorScheme.fromSeed(
@@ -23,33 +24,22 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color.fromARGB(255, 242, 211, 154),
       ),
-      home: const MyHomePage(title: 'Surf Spots App'),
+      home: const HomeScreen(title: 'Surf Spots App'),
       debugShowCheckedModeBanner: false,
-      // ESSAYEZ CECI : Essayez de changer le titre ici pour quelque
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // Ce widget est la page d'accueil de votre application. Il est stateful, ce qui signifie
-  // qu'il a un objet State (défini ci-dessous) qui contient des champs qui affectent
-  // son apparence.
-
-  // Cette classe est la configuration de l'état. Elle contient les valeurs (dans ce
-  // cas le titre) fournies par le parent (dans ce cas le widget App) et
-  // utilisées par la méthode build de l'état. Les champs dans une sous-classe de Widget sont
-  // toujours marqués comme "final".
-
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key, required this.title});
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  // L'état et la logique restent ici
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
   int _counter = 0;
 
   void _incrementCounter() {
@@ -58,14 +48,35 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  late final List<Widget> _pages = [
+    // Page "Accueil" avec carrousel, grille, compteur
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Tittle(),
+        const SearchBarSpot(),
+        const Carroussel(),
+        const SizedBox(height: 23),
+        Expanded(child: GalleryPage()),
+        const SizedBox(height: 23),
+        CounterDisplay(count: _counter),
+        const SizedBox(height: 23),
+      ],
+    ),
+    const Center(child: Text('Explore', style: TextStyle(fontSize: 24))),
+    const Center(child: Text('Carte', style: TextStyle(fontSize: 24))),
+    const Center(child: Text('Favoris', style: TextStyle(fontSize: 24))),
+    const Center(child: Text('Profil', style: TextStyle(fontSize: 24))),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Cette méthode est réexécutée chaque fois que setState est appelé, par exemple comme fait
-    // par la méthode _incrementCounter ci-dessus.
-    //
-    // Le framework Flutter a été optimisé pour rendre la réexécution des méthodes build
-    // rapide, de sorte que vous pouvez simplement reconstruire tout ce qui a besoin d'être mis à jour plutôt
-    // que d'avoir à modifier individuellement des instances de widgets.
     return Scaffold(
       // appBar: AppBar(
       //   // ESSAYEZ CECI : Essayez de changer la couleur ici pour une couleur spécifique (peut-être
@@ -109,10 +120,11 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
+      
       // Le bouton est une propriété du Scaffold, pas du body
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter, // Il appelle la fonction définie ici
-        tooltip: 'Incrémenter',
+        onPressed: _incrementCounter,
+        tooltip: 'IncrÃ©menter',
         child: const Icon(Icons.add),
       ),
     );
