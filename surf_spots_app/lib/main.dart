@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
-import 'package:surf_spots_app/widgets/tittle.dart';
+import 'package:surf_spots_app/widgets/return_button.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
-import 'package:surf_spots_app/widgets/counter_display.dart';
 import 'package:surf_spots_app/widgets/grid.dart';
 
 void main() {
@@ -19,7 +18,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Surf Spots App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 91, 188, 237),
+        ),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       home: const HomeScreen(title: 'Surf Spots App'),
       debugShowCheckedModeBanner: false,
@@ -38,6 +40,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  // Le compteur n'est plus utilisé dans cette mise en page, mais on le garde pour le bouton
   int _counter = 0;
 
   void _incrementCounter() {
@@ -45,54 +48,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _counter++;
     });
   }
-
-  late final List<Widget> _pages = [
-    // Page "Accueil" avec carrousel, grille, compteur
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Tittle(),
-        const SearchBarSpot(),
-        const Carroussel(),
-        const SizedBox(height: 23),
-        Expanded(child: GalleryPage()),
-        const SizedBox(height: 23),
-        CounterDisplay(count: _counter),
-        const SizedBox(height: 23),
-      ],
-    ),
-    const Center(child: Text('Explore', style: TextStyle(fontSize: 24))),
-    const Center(child: Text('Carte', style: TextStyle(fontSize: 24))),
-    const Center(child: Text('Favoris', style: TextStyle(fontSize: 24))),
-    // Profil page avec navigation vers Login et Register
-    Column(
-      children: [
-        const SizedBox(height: 23),
-        const Text('Profil', style: TextStyle(fontSize: 24)),
-        const SizedBox(height: 23),
-        Expanded(
-          child: ListView(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.login),
-                title: const Text('Se connecter'),
-                onTap: () {
-                  Navigator.pushNamed(context, '/login');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.app_registration),
-                title: const Text('S\'inscrire'),
-                onTap: () {
-                  Navigator.pushNamed(context, '/register');
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -102,20 +57,112 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        centerTitle: true,
+    // 1. On définit la liste des pages ici pour qu'elle soit toujours à jour.
+    final List<Widget> pages = [
+      // Page 0: "Accueil"
+      const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 2. Éléments non défilables en haut
+          SearchBarSpot(),
+          SizedBox(height: 0.5), // Espace entre les widgets
+          Carroussel(),
+          SizedBox(height: 0.3), // Espace entre les widgets
+          // 3. La grille prend tout l'espace restant et est défilable
+          Expanded(child: GalleryPage()),
+        ],
       ),
-      body: _pages[_selectedIndex],
+      // Les autres pages de la barre de navigation
+      const Center(
+        child: Text(
+          'Explore',
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
+      ),
+      const Center(
+        child: Text(
+          'Carte',
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
+      ),
+      const Center(
+        child: Text(
+          'Favoris',
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
+      ),
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              child: const Text(
+                'Se connecter',
+                style: TextStyle(color: Colors.black, fontSize: 18),
+              ),
+            ),
+            const SizedBox(height: 24),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              child: const Text(
+                'S\'inscrire',
+                style: TextStyle(color: Colors.black, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+
+    return Scaffold(
+      body: Container(
+        // Le fond d'écran est conservé
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/background.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        // 4. Le contenu par-dessus le fond d'écran
+        child: Padding(
+          padding: const EdgeInsets.only(top: 50.0),
+          child: pages.elementAt(_selectedIndex),
+        ),
+      ),
       bottomNavigationBar: Navbar(
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
-        tooltip: 'IncrÃ©menter',
+        tooltip: 'Incrémenter',
         child: const Icon(Icons.add),
       ),
     );

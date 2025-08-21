@@ -35,19 +35,26 @@ class GalleryPage extends StatelessWidget {
       ),
     ];
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(10),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.8, // Ajuste la hauteur des cartes
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 12.0),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(200), // semi-transparent
+        borderRadius: BorderRadius.circular(15.0), // arrondis
       ),
-      itemCount: _spots.length,
-      itemBuilder: (context, index) {
-        final spot = _spots[index];
-        return SpotCard(spot: spot);
-      },
+      child: GridView.builder(
+        padding: const EdgeInsets.all(10),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.8,
+        ),
+        itemCount: _spots.length,
+        itemBuilder: (context, index) {
+          final spot = _spots[index];
+          return SpotCard(spot: spot);
+        },
+      ),
     );
   }
 }
