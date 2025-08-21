@@ -123,7 +123,7 @@ class _CarrousselState extends State<Carroussel> {
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 10.0),
                         // 3. Utiliser le nouveau widget SpotCard
-                        child: SpotCard(spot: spot),
+                        child: SpotCard(spot: spot, showLike: false),
                       ),
                     );
                   }),
