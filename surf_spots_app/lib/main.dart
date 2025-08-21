@@ -3,6 +3,7 @@ import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/tittle.dart'; // Importer le widget Tittle
 import 'package:surf_spots_app/widgets/searchbar.dart'; // Importer le widget SearchBar
 import 'package:surf_spots_app/widgets/counter_display.dart'; // Importer le widget d'affichage
+import 'package:surf_spots_app/widgets/grid.dart';
 
 void main() {
   runApp(const MyApp());
@@ -98,12 +99,14 @@ class _MyHomePageState extends State<MyHomePage> {
           const Tittle(),
           const SearchBarSpot(),
           const Carroussel(),
+          const SizedBox(height: 23),
           // On ajoute un Expanded pour que le compteur prenne la place restante
-          Expanded(
-            child: CounterDisplay(
-              count: _counter, // On passe la valeur actuelle du compteur
-            ),
+          Expanded(child: GalleryPage()),
+          const SizedBox(height: 23),
+          CounterDisplay(
+            count: _counter, // On passe la valeur actuelle du compteur
           ),
+          const SizedBox(height: 23),
         ],
       ),
       // Le bouton est une propriété du Scaffold, pas du body
