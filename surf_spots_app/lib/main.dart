@@ -18,20 +18,6 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         // C'est le thème de votre application.
-        //
-        // ESSAYEZ CECI : Essayez d'exécuter votre application avec "flutter run". Vous verrez
-        // que l'application a une barre d'outils violette. Ensuite, sans quitter l'application,
-        // essayez de changer la seedColor dans le colorScheme ci-dessous en Colors.green
-        // puis appelez le "hot reload" (enregistrez vos modifications ou appuyez sur le bouton
-        // "hot reload" dans un IDE compatible avec Flutter, ou appuyez sur "r" si vous avez utilisé
-        // la ligne de commande pour démarrer l'application).
-        //
-        // Notez que le compteur n'est pas revenu à zéro ; l'état de l'application
-        // n'est pas perdu pendant le rechargement. Pour réinitialiser l'état, utilisez plutôt
-        // le redémarrage à chaud (hot restart).
-        //
-        // Cela fonctionne aussi pour le code, pas seulement pour les valeurs : la plupart des modifications de code peuvent être
-        // testées avec un simple rechargement à chaud (hot reload).
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 91, 188, 237),
         ),
@@ -81,30 +67,47 @@ class _MyHomePageState extends State<MyHomePage> {
     // rapide, de sorte que vous pouvez simplement reconstruire tout ce qui a besoin d'être mis à jour plutôt
     // que d'avoir à modifier individuellement des instances de widgets.
     return Scaffold(
-      appBar: AppBar(
-        // ESSAYEZ CECI : Essayez de changer la couleur ici pour une couleur spécifique (peut-être
-        // Colors.amber ?) et déclenchez un hot reload pour voir la couleur de l'AppBar
-        // changer tandis que les autres couleurs restent les mêmes.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Ici, nous prenons la valeur de l'objet MyHomePage qui a été créé par
-        // la méthode App.build, et nous l'utilisons pour définir le titre de notre barre d'applications.
-        title: Text(widget.title),
-        centerTitle: true,
-      ),
+      // appBar: AppBar(
+      //   // ESSAYEZ CECI : Essayez de changer la couleur ici pour une couleur spécifique (peut-être
+      //   // Colors.amber ?) et déclenchez un hot reload pour voir la couleur de l'AppBar
+      //   // changer tandis que les autres couleurs restent les mêmes.
+      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      //   // Ici, nous prenons la valeur de l'objet MyHomePage qui a été créé par
+      //   // la méthode App.build, et nous l'utilisons pour définir le titre de notre barre d'applications.
+      //   title: Text(widget.title),
+      //   centerTitle: true,
+      // ),
       // Le corps principal de votre application
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Tittle(),
-          const SearchBarSpot(),
-          const Carroussel(),
-          // On ajoute un Expanded pour que le compteur prenne la place restante
-          Expanded(
-            child: CounterDisplay(
-              count: _counter, // On passe la valeur actuelle du compteur
-            ),
+      body: Container(
+        // 1. Définir la décoration du conteneur pour y mettre l'image
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            // 2. Charger l'image depuis les assets
+            image: AssetImage(
+              "assets/images/background.png",
+            ), // <-- METTEZ LE NOM DE VOTRE IMAGE ICI
+            // 3. Assurer que l'image couvre tout l'écran
+            fit: BoxFit.cover,
           ),
-        ],
+        ),
+        // 4. Le contenu de la page vient ici, par-dessus l'image
+        child: Padding(
+          padding: const EdgeInsets.only(top:40.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Tittle(),
+              SearchBarSpot(),
+              Carroussel(),
+              // On ajoute un Expanded pour que le compteur prenne la place restante
+              Expanded(
+                child: CounterDisplay(
+                  count: _counter, // On passe la valeur actuelle du compteur
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       // Le bouton est une propriété du Scaffold, pas du body
       floatingActionButton: FloatingActionButton(
