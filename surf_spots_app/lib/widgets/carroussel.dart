@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:surf_spots_app/models/surf_spot.dart'; // Importer le modèle
-import 'package:surf_spots_app/widget/spot_card.dart'; // Importer la nouvelle carte
+import 'package:surf_spots_app/widgets/spot_card.dart'; // Importer la nouvelle carte
 
 class Carroussel extends StatefulWidget {
   const Carroussel({super.key});

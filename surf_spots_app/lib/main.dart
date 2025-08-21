@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:surf_spots_app/widget/carroussel.dart';
-import 'package:surf_spots_app/widget/tittle.dart'; // Importer le widget Tittle
-import 'package:surf_spots_app/widget/searchbar.dart'; // Importer le widget SearchBar
-import 'package:surf_spots_app/widget/counter_display.dart'; // Importer le widget d'affichage
+import 'package:surf_spots_app/widgets/carroussel.dart';
+import 'package:surf_spots_app/widgets/tittle.dart'; // Importer le widget Tittle
+import 'package:surf_spots_app/widgets/searchbar.dart'; // Importer le widget SearchBar
+import 'package:surf_spots_app/widgets/counter_display.dart'; // Importer le widget d'affichage
 
 void main() {
   runApp(const MyApp());
