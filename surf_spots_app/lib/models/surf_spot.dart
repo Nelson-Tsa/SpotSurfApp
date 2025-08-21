@@ -1,7 +1,11 @@
 class SurfSpot {
   final String name;
   final String description;
-  // Vous pourrez ajouter d'autres champs plus tard : imageUrl, location, etc.
+  final String imageUrl; // Ajouter le champ pour l'image
 
-  SurfSpot({required this.name, required this.description});
+  SurfSpot({
+    required this.name,
+    required this.description,
+    required this.imageUrl,
+  });
 }

@@ -10,13 +10,31 @@ class SpotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4.0,
+      clipBehavior: Clip
+          .antiAlias, // Pour que l'image respecte les coins arrondis de la carte
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment
+            .stretch, // Pour que l'image prenne toute la largeur
         children: [
-          const Icon(Icons.surfing, size: 40, color: Colors.blue),
-          const SizedBox(height: 8),
-          Text(spot.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(spot.description),
+          Expanded(
+            child: Image.asset(
+              spot.imageUrl,
+              fit: BoxFit
+                  .cover, // Pour que l'image remplisse l'espace disponible
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Text(
+                  spot.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(spot.description),
+              ],
+            ),
+          ),
         ],
       ),
     );
