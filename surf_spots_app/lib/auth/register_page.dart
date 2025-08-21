@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_input_field.dart';
+import '../widgets/return_button.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -83,6 +84,11 @@ class RegisterPage extends StatelessWidget {
                     style: TextStyle(color: Color(0xFF1A73E8)),
                   ),
                 ),
+              ),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ReturnButton(),
               ),
             ],
           ),

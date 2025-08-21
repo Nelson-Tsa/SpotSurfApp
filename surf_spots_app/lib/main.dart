@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
@@ -99,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.white,
+                maximumSize: const Size(350, 60),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 16,
@@ -120,6 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.white,
+                minimumSize: const Size(170, 30),
+
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 16,
