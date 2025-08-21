@@ -8,7 +8,7 @@ class ReturnButton extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,
-        minimumSize: const Size(80, 30),
+        minimumSize: const Size(30, 30),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         shadowColor: Colors.black.withValues(alpha: 0.25), // couleur de l’ombre
@@ -17,10 +17,7 @@ class ReturnButton extends StatelessWidget {
       onPressed: () {
         Navigator.pop(context);
       },
-      child: const Text(
-        "Retour",
-        style: TextStyle(color: Colors.white, fontSize: 20),
-      ),
+      child: Icon(Icons.arrow_back, color: Colors.white, size: 20),
     );
   }
 }
