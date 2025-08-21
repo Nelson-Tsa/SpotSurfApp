@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
@@ -19,10 +20,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color.fromARGB(255, 91, 188, 237),
         ),
-        scaffoldBackgroundColor: const Color.fromARGB(255, 242, 211, 154),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       home: const HomeScreen(title: 'Surf Spots App'),
       debugShowCheckedModeBanner: false,
+      routes: Routes.appRoutes,
     );
   }
 }
@@ -88,10 +90,52 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 24, color: Colors.white),
         ),
       ),
-      const Center(
-        child: Text(
-          'Profil',
-          style: TextStyle(fontSize: 24, color: Colors.white),
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              child: const Text(
+                'Se connecter',
+                style: TextStyle(color: Colors.black, fontSize: 18),
+              ),
+            ),
+            const SizedBox(height: 24),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              child: const Text(
+                'S\'inscrire',
+                style: TextStyle(color: Colors.black, fontSize: 18),
+              ),
+            ),
+          ],
         ),
       ),
     ];
