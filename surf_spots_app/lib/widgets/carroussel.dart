@@ -18,11 +18,31 @@ class _CarrousselState extends State<Carroussel> {
 
   // 1. Créer une liste de données de substitution (plus tard, cela viendra de la base de données)
   final List<SurfSpot> _spots = [
-    SurfSpot(name: 'La Gravière', description: 'Hossegor, France', imageUrl: 'assets/images/la_graviere.jpg'),
-    SurfSpot(name: 'Pipeline', description: 'Oahu, Hawaï', imageUrl: 'assets/images/pipeline.jpg'),
-    SurfSpot(name: 'Uluwatu', description: 'Bali, Indonésie', imageUrl: 'assets/images/uluwatu.jpg'),
-    SurfSpot(name: 'Jeffreys Bay', description: 'Afrique du Sud', imageUrl: 'assets/images/jeffreys_bay.jpg'),
-    SurfSpot(name: 'Teahupo\'o', description: 'Tahiti, Polynésie', imageUrl: 'assets/images/teahupoo.jpg'),
+    SurfSpot(
+      name: 'La Gravière',
+      description: 'Hossegor, France',
+      imageUrl: 'assets/images/la_graviere.jpg',
+    ),
+    SurfSpot(
+      name: 'Pipeline',
+      description: 'Oahu, Hawaï',
+      imageUrl: 'assets/images/pipeline.jpg',
+    ),
+    SurfSpot(
+      name: 'Uluwatu',
+      description: 'Bali, Indonésie',
+      imageUrl: 'assets/images/uluwatu.jpg',
+    ),
+    SurfSpot(
+      name: 'Jeffreys Bay',
+      description: 'Afrique du Sud',
+      imageUrl: 'assets/images/jeffreys_bay.jpg',
+    ),
+    SurfSpot(
+      name: 'Teahupo\'o',
+      description: 'Tahiti, Polynésie',
+      imageUrl: 'assets/images/teahupoo.jpg',
+    ),
   ];
 
   late int _totalPages;
@@ -92,7 +112,7 @@ class _CarrousselState extends State<Carroussel> {
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 10.0),
                       // 3. Utiliser le nouveau widget SpotCard
-                      child: SpotCard(spot: spot),
+                      child: SpotCard(spot: spot, showLike: false),
                     ),
                   );
                 }),

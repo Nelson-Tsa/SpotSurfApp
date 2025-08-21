@@ -107,6 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
             count: _counter, // On passe la valeur actuelle du compteur
           ),
           const SizedBox(height: 23),
+          
         ],
       ),
       // Le bouton est une propriété du Scaffold, pas du body
