@@ -19,9 +19,9 @@ class Navbar extends StatelessWidget {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explore'),
-        BottomNavigationBarItem(icon: Icon(Icons.location_on), label: 'Carte'),
+        BottomNavigationBarItem(icon: Icon(Icons.near_me_rounded), label: 'Carte'),
         BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favoris'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
     );
   }
