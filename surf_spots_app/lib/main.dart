@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/tittle.dart';
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomeScreen(title: 'Surf Spots App'),
       debugShowCheckedModeBanner: false,
+      routes: Routes.appRoutes,
     );
   }
 }
@@ -62,7 +64,34 @@ class _HomeScreenState extends State<HomeScreen> {
     const Center(child: Text('Explore', style: TextStyle(fontSize: 24))),
     const Center(child: Text('Carte', style: TextStyle(fontSize: 24))),
     const Center(child: Text('Favoris', style: TextStyle(fontSize: 24))),
-    const Center(child: Text('Profil', style: TextStyle(fontSize: 24))),
+    // Profil page avec navigation vers Login et Register
+    Column(
+      children: [
+        const SizedBox(height: 23),
+        const Text('Profil', style: TextStyle(fontSize: 24)),
+        const SizedBox(height: 23),
+        Expanded(
+          child: ListView(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.login),
+                title: const Text('Se connecter'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/login');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.app_registration),
+                title: const Text('S\'inscrire'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
   ];
 
   void _onItemTapped(int index) {
