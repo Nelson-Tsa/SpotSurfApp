@@ -10,6 +10,19 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    // Load environment variables from .env file
+    def flutterProjectRoot = rootProject.projectDir.parentFile
+    def envFile = new File(flutterProjectRoot, ".env")
+    def envProperties = new Properties()
+    if (envFile.exists()) {
+        envFile.withReader("UTF-8") { reader ->
+            envProperties.load(reader)
+        }
+    }
+
+    def googleMapsApiKey = envProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
+
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -28,6 +41,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        resValue "string", "google_maps_key", googleMapsApiKey
     }
 
     buildTypes {
