@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
+import 'package:surf_spots_app/constants/colors.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -22,7 +23,7 @@ class RegisterPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A73E8),
+                  color: AppColors.primary,
                 ),
               ),
               Text(
@@ -58,7 +59,7 @@ class RegisterPage extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      backgroundColor: Color(0xFF1A73E8),
+                      backgroundColor: AppColors.primary,
                     ),
                     child: Text(
                       'Sign Up',
@@ -81,7 +82,7 @@ class RegisterPage extends StatelessWidget {
                   },
                   child: Text(
                     'Already have an account? Sign In',
-                    style: TextStyle(color: Color(0xFF1A73E8)),
+                    style: TextStyle(color: AppColors.primary),
                   ),
                 ),
               ),
