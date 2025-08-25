@@ -8,6 +8,7 @@ import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
 import 'package:surf_spots_app/widgets/grid.dart';
 import 'package:surf_spots_app/pages/map_page.dart';
+import 'package:surf_spots_app/constants/colors.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -24,9 +25,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Surf Spots App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 91, 188, 237),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       home: const HomeScreen(title: 'Surf Spots App'),

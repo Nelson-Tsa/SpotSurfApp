@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
+import 'package:surf_spots_app/constants/colors.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -30,7 +31,7 @@ class ProfilePage extends StatelessWidget {
   // --- Header ---
   Widget _buildHeader() {
     return Container(
-      color: const Color(0xFF1A73E8),
+      color: AppColors.primary,
       width: double.infinity,
       alignment: Alignment.center,
       child: Padding(
@@ -60,7 +61,7 @@ class ProfilePage extends StatelessWidget {
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            color: const Color(0xFF1A73E8),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(100),
           ),
           child: const Padding(

@@ -13,9 +13,8 @@ class ExplorePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
           SearchBarSpot(),
-          SizedBox(height: 0.5), // Espace entre les widgets
-          // espacement entre SearchBar et la grille
-          Expanded(child: GalleryPage()), // la grille occupe le reste
+          SizedBox(height: 0.5),
+          Expanded(child: GalleryPage()),
         ],
       ),
     );
