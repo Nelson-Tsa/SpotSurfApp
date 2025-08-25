@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/widgets/spot_card.dart';
+import 'package:surf_spots_app/constants/colors.dart';
 
 class Carroussel extends StatefulWidget {
   const Carroussel({super.key});
@@ -139,7 +140,7 @@ class _CarrousselState extends State<Carroussel> {
               effect: const WormEffect(
                 dotHeight: 10,
                 dotWidth: 10,
-                activeDotColor: Color.fromARGB(255, 91, 188, 237),
+                activeDotColor: AppColors.primary,
                 type: WormType.thin,
               ),
               onDotClicked: (index) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
+import 'package:surf_spots_app/constants/colors.dart';
 
 class SpotCard extends StatefulWidget {
   final SurfSpot spot;
@@ -36,7 +37,7 @@ class _SpotCardState extends State<SpotCard> {
                       widget.spot.isLiked ?? false
                           ? Icons.favorite
                           : Icons.favorite_border,
-                      color: Colors.blue,
+                      color: AppColors.primary,
                     ),
                     onPressed: () {
                       setState(() {

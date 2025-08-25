@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
+import 'package:surf_spots_app/constants/colors.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -22,7 +23,7 @@ class LoginPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A73E8),
+                  color: AppColors.primary,
                 ),
               ),
               Text(
@@ -54,7 +55,7 @@ class LoginPage extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      backgroundColor: Color(0xFF1A73E8),
+                      backgroundColor: AppColors.primary,
                     ),
                     child: Text(
                       'Sign In',
@@ -74,7 +75,7 @@ class LoginPage extends StatelessWidget {
                 },
                 child: Text(
                   'Forgot Password?',
-                  style: TextStyle(color: Color(0xFF1A73E8)),
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ),
               SizedBox(height: 10),
@@ -86,7 +87,7 @@ class LoginPage extends StatelessWidget {
                   },
                   child: Text(
                     "Don't have an account? Sign Up",
-                    style: TextStyle(color: Color(0xFF1A73E8)),
+                    style: TextStyle(color: AppColors.primary),
                   ),
                 ),
               ),

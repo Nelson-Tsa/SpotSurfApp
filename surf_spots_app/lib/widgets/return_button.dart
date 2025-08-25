@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:surf_spots_app/constants/colors.dart';
 
 class ReturnButton extends StatelessWidget {
   const ReturnButton({super.key});
@@ -7,7 +8,7 @@ class ReturnButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
+        backgroundColor: AppColors.primary,
         minimumSize: const Size(30, 30),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
