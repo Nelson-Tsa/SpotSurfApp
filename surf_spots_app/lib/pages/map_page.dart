@@ -73,97 +73,147 @@ class _MapPageState extends State<MapPage> {
       body: SlidingUpPanel(
         controller: _panelController, // Assign the controller
         // The panel that slides up
-        panel: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.start, // Align content to the top
-              children: [
-                // Handle to indicate the panel is draggable
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+        panel: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Handle to indicate the panel is draggable
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              ),
+              // Header with title and like button
+              Row(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        "Informations sur le spot",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_selectedSpot != null)
+                    IconButton(
+                      icon: Icon(
+                        _selectedSpot!.isLiked ?? false
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: Colors.blue,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _selectedSpot!.isLiked =
+                              !(_selectedSpot!.isLiked ?? false);
+                        });
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Spot information aligned to the left
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Informations sur le spot :",
-                      style: TextStyle(
-                        fontSize: 20,
+                      _selectedSpotTitle,
+                      style: const TextStyle(
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_selectedSpot != null)
-                      IconButton(
-                        icon: Icon(
-                          _selectedSpot!.isLiked ?? false
-                              ? Icons.favorite
-                              : Icons.favorite_border,
+                    const SizedBox(height: 0.2),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.near_me_rounded,
+                          size: 18,
                           color: Colors.blue,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _selectedSpot!.isLiked =
-                                !(_selectedSpot!.isLiked ?? false);
-                          });
-                        },
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  _selectedSpotTitle, // Display the selected spot's title
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.near_me_rounded,
-                      size:
-                          18, // Taille de l'icône, ajustée pour correspondre au texte
-                      color: Colors
-                          .blue, // Couleur de l'icône (modifiable selon votre thème)
+                        const SizedBox(width: 4),
+                        Text(
+                          _selectedSpotCity,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(
-                      width: 4,
-                    ), // Espace entre l'icône et le texte
+                    const SizedBox(height: 14),
                     Text(
-                      _selectedSpotCity,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontStyle: FontStyle.italic,
+                      _selectedSpotDescription,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+                    // Photo section aligned to the left
+                    Text(
+                      "Photo :",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(height: 15),
+                    _selectedSpot != null
+                        ? Image.asset(
+                            _selectedSpot!.imageUrl,
+                            height: 50,
+                            width: 100,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset(
+                            'assets/images/placeholder.png',
+                            height: 100,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                  ],
+                ),
+              ),
+              // Bottom section with likes count and details button
+              Padding(
+                padding: const EdgeInsets.only(
+                  right: 80.0,
+                ), // Marge pour éviter le bouton flottant
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (_selectedSpot != null)
+                      Row(
+                        children: [
+                          Icon(Icons.favorite, color: Colors.blue, size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            "${_selectedSpot!.isLiked == true ? '1' : '0'} like${_selectedSpot!.isLiked == true ? '' : 's'}",
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // This could navigate to a full details page in the future
+                      },
+                      child: const Text("Détails"),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  _selectedSpotDescription, // Display the selected spot's description
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    // This could navigate to a full details page in the future
-                  },
-                  child: const Text("Voir plus de détails"),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         // The main content behind the panel
