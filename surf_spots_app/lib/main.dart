@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/pages/explore_page.dart';
 import 'package:surf_spots_app/pages/favoris_page.dart';
+import 'package:surf_spots_app/pages/profile_page.dart';
 import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
@@ -82,67 +83,70 @@ class _HomeScreenState extends State<HomeScreen> {
       const MapPage(),
       const FavorisPage(),
       Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.white,
-                maximumSize: const Size(350, 60),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-              child: const Text(
-                'Se connecter',
-                style: TextStyle(color: Colors.black, fontSize: 18),
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.white,
-                minimumSize: const Size(170, 30),
+        child: ProfilePage(),
+        // child: Column(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   children: [
+        //     TextButton(
+        //       style: TextButton.styleFrom(
+        //         foregroundColor: Colors.white,
+        //         backgroundColor: Colors.white,
+        //         maximumSize: const Size(350, 60),
+        //         padding: const EdgeInsets.symmetric(
+        //           horizontal: 32,
+        //           vertical: 16,
+        //         ),
+        //         shape: RoundedRectangleBorder(
+        //           borderRadius: BorderRadius.circular(8),
+        //         ),
+        //       ),
+        //       onPressed: () {
+        //         Navigator.pushNamed(context, '/login');
+        //       },
+        //       child: const Text(
+        //         'Se connecter',
+        //         style: TextStyle(color: Colors.black, fontSize: 18),
+        //       ),
+        //     ),
+        //     const SizedBox(height: 24),
+        //     TextButton(
+        //       style: TextButton.styleFrom(
+        //         foregroundColor: Colors.white,
+        //         backgroundColor: Colors.white,
+        //         minimumSize: const Size(170, 30),
 
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text(
-                'S\'inscrire',
-                style: TextStyle(color: Colors.black, fontSize: 18),
-              ),
-            ),
-          ],
-        ),
+        //         padding: const EdgeInsets.symmetric(
+        //           horizontal: 32,
+        //           vertical: 16,
+        //         ),
+        //         shape: RoundedRectangleBorder(
+        //           borderRadius: BorderRadius.circular(8),
+        //         ),
+        //       ),
+        //       onPressed: () {
+        //         Navigator.pushNamed(context, '/register');
+        //       },
+        //       child: const Text(
+        //         'S\'inscrire',
+        //         style: TextStyle(color: Colors.black, fontSize: 18),
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ),
     ];
 
     return Scaffold(
       body: Container(
         // Le fond d'écran est conservé
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/background.png"),
-            fit: BoxFit.cover,
-          ),
-        ),
+        decoration: _selectedIndex == 4
+            ? null
+            : const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/images/background.png"),
+                  fit: BoxFit.cover,
+                ),
+              ),
         // 4. Le contenu par-dessus le fond d'écran
         child: Padding(
           padding: const EdgeInsets.only(top: 50.0),

@@ -7,7 +7,7 @@ class GalleryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<SurfSpot> _spots = [
+    final List<SurfSpot> spots = [
       SurfSpot(
         name: 'La Gravière',
         description: 'Hossegor, France',
@@ -49,9 +49,9 @@ class GalleryPage extends StatelessWidget {
           mainAxisSpacing: 10,
           childAspectRatio: 0.8,
         ),
-        itemCount: _spots.length,
+        itemCount: spots.length,
         itemBuilder: (context, index) {
-          final spot = _spots[index];
+          final spot = spots[index];
           return SpotCard(spot: spot);
         },
       ),
