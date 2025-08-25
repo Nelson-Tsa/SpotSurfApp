@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:surf_spots_app/widgets/searchbar.dart';
+import 'package:surf_spots_app/widgets/grid.dart';
 
 class FavorisPage extends StatelessWidget {
-  const FavorisPage({super.key});
+  final String hintText;
+  const FavorisPage({
+    super.key,
+    this.hintText = "Rechercher dans mes favoris...",
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Mes Favoris"), centerTitle: true),
-      body: const Center(
-        child: Text(
-          "Aucun favori pour l'instant 🌊",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
+      backgroundColor: Colors.transparent,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Placeholder personnalisé pour la page Favoris
+          SearchBarSpot(hintText: hintText),
+          const SizedBox(height: 0.5),
+          const Expanded(child: GalleryPage()),
+        ],
       ),
     );
   }
