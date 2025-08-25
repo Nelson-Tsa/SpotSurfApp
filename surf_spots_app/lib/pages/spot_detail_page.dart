@@ -29,10 +29,20 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
       children: List.generate(3, (index) {
         return Padding(
           padding: const EdgeInsets.only(right: 4.0),
-          child: Icon(
-            Icons.surfing,
-            color: index < level ? Colors.blue : Colors.grey[300],
-            size: 24,
+          child: Image.asset(
+            index < level
+                ? 'assets/logo/SurfPlancheGOOD.png'
+                : 'assets/logo/plancheGrise.png',
+            width: 30,
+            height: 30,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback to default icon if image not found
+              return Icon(
+                Icons.surfing,
+                color: index < level ? Colors.blue : Colors.grey[300],
+                size: 24,
+              );
+            },
           ),
         );
       }),
@@ -44,10 +54,20 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
       children: List.generate(3, (index) {
         return Padding(
           padding: const EdgeInsets.only(right: 4.0),
-          child: Icon(
-            Icons.waves,
-            color: index < difficulty ? Colors.orange : Colors.grey[300],
-            size: 24,
+          child: Image.asset(
+            index < difficulty
+                ? 'assets/logo/vague.png'
+                : 'assets/logo/GriseVague.png',
+            width: 30,
+            height: 30,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback to default icon if image not found
+              return Icon(
+                Icons.waves,
+                color: index < difficulty ? Colors.orange : Colors.grey[300],
+                size: 24,
+              );
+            },
           ),
         );
       }),
@@ -263,29 +283,71 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
           ),
         ),
         // Background image
-        body: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(_backgroundImageUrl),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.black.withAlpha(30), Colors.transparent],
+        body: Stack(
+          children: [
+            // Background image with 1/3 height and centered
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.1, // Décalé du haut
+              left: 0,
+              right: 0,
+              height:
+                  MediaQuery.of(context).size.height * 0.3, // 1/3 de la page
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(_backgroundImageUrl),
+                    fit: BoxFit.contain, // Garde les proportions sans étirement
+                    alignment: Alignment.center,
+                  ),
+                ),
               ),
             ),
-          ),
+            // Dark overlay for better readability - only on image area
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.1,
+              left: 0,
+              right: 0,
+              height: MediaQuery.of(context).size.height * 0.3,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withAlpha(30),
+                      Colors.black.withAlpha(10),
+                      Colors.transparent,
+                      Colors.black.withAlpha(40),
+                    ],
+                    stops: [0.0, 0.5, 1.0],
+                  ),
+                ),
+              ),
+            ),
+            // Top area with solid background
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: MediaQuery.of(context).size.height * 0.1,
+              child: Container(color: Colors.white),
+            ),
+            // Bottom area with solid background
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: Container(color: Colors.white),
+            ),
+          ],
         ),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24.0),
           topRight: Radius.circular(24.0),
         ),
-        minHeight: MediaQuery.of(context).size.height * 0.4,
-        maxHeight: MediaQuery.of(context).size.height * 0.8,
+        minHeight: MediaQuery.of(context).size.height * 0.2,
+        maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
     );
   }

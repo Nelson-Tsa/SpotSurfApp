@@ -60,7 +60,7 @@ class _MapPageState extends State<MapPage> {
             _selectedSpot = SurfSpot(
               name: 'Teahupoo Wave',
               city: 'Tahiti, Polynésie',
-              level: 2,
+              level: 1,
               difficulty: 2,
               description:
                   'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.',
