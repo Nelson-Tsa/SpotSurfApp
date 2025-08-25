@@ -5,8 +5,12 @@ import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
 import 'package:surf_spots_app/widgets/grid.dart';
+import 'package:surf_spots_app/pages/map_page.dart';
 
-void main() {
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+void main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -79,12 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 24, color: Colors.white),
         ),
       ),
-      const Center(
-        child: Text(
-          'Carte',
-          style: TextStyle(fontSize: 24, color: Colors.white),
-        ),
-      ),
+      const MapPage(),
       const Center(
         child: Text(
           'Favoris',
