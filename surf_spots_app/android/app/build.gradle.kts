@@ -1,27 +1,27 @@
+import java.util.Properties
+import java.io.File
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Load environment variables from .env file
+val flutterProjectRoot = rootProject.projectDir.parentFile
+val envFile = File(flutterProjectRoot, ".env")
+val envProperties = Properties()
+if (envFile.exists()) {
+    envFile.reader(Charsets.UTF_8).use { reader ->
+        envProperties.load(reader)
+    }
+}
+val googleMapsApiKey = envProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
 
 android {
     namespace = "com.example.surf_spots_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
-
-    // Load environment variables from .env file
-    def flutterProjectRoot = rootProject.projectDir.parentFile
-    def envFile = new File(flutterProjectRoot, ".env")
-    def envProperties = new Properties()
-    if (envFile.exists()) {
-        envFile.withReader("UTF-8") { reader ->
-            envProperties.load(reader)
-        }
-    }
-
-    def googleMapsApiKey = envProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
-
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -33,22 +33,17 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.surf_spots_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
-        resValue "string", "google_maps_key", googleMapsApiKey
+        resValue("string", "google_maps_key", googleMapsApiKey)
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
