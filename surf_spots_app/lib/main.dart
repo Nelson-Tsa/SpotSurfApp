@@ -1,5 +1,6 @@
-
 import 'package:flutter/material.dart';
+import 'package:surf_spots_app/pages/explore_page.dart';
+import 'package:surf_spots_app/pages/favoris_page.dart';
 import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
@@ -77,19 +78,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       // Les autres pages de la barre de navigation
-      const Center(
-        child: Text(
-          'Explore',
-          style: TextStyle(fontSize: 24, color: Colors.white),
-        ),
-      ),
+      const ExplorePage(),
       const MapPage(),
-      const Center(
-        child: Text(
-          'Favoris',
-          style: TextStyle(fontSize: 24, color: Colors.white),
-        ),
-      ),
+      const FavorisPage(),
       Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
