@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
+import 'package:surf_spots_app/pages/spot_detail_page.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -19,6 +20,8 @@ class _MapPageState extends State<MapPage> {
   String _selectedSpotDescription =
       "Cliquez sur un marqueur pour voir les détails ici.";
   String _selectedSpotCity = "";
+  int _selectedSpotLevel = 0;
+  int _selectedSpotDifficulty = 0;
 
   // SurfSpot object for the selected spot to handle likes
   SurfSpot? _selectedSpot;
@@ -50,14 +53,22 @@ class _MapPageState extends State<MapPage> {
           setState(() {
             _selectedSpotTitle = 'Teahupoo Wave';
             _selectedSpotCity = 'Tahiti, Polynésie';
+            _selectedSpotLevel = 2;
+            _selectedSpotDifficulty = 2;
             _selectedSpotDescription =
                 'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.';
             _selectedSpot = SurfSpot(
               name: 'Teahupoo Wave',
+              city: 'Tahiti, Polynésie',
+              level: 2,
+              difficulty: 2,
               description:
                   'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.',
-              imageUrl:
-                  'assets/images/teahupoo.jpg', // Vous pouvez ajuster le chemin
+              imageUrls: [
+                'assets/images/teahupoo.jpg',
+                'assets/images/teahupoo2.jpg',
+                'assets/images/teahupoo3.jpg',
+              ],
               isLiked: false,
             );
           });
@@ -168,7 +179,7 @@ class _MapPageState extends State<MapPage> {
                     const SizedBox(height: 15),
                     _selectedSpot != null
                         ? Image.asset(
-                            _selectedSpot!.imageUrl,
+                            _selectedSpot!.imageUrls[0],
                             height: 50,
                             width: 100,
                             fit: BoxFit.cover,
@@ -206,7 +217,15 @@ class _MapPageState extends State<MapPage> {
                       ),
                     ElevatedButton(
                       onPressed: () {
-                        // This could navigate to a full details page in the future
+                        if (_selectedSpot != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  SpotDetailPage(spot: _selectedSpot!),
+                            ),
+                          );
+                        }
                       },
                       child: const Text("Détails"),
                     ),

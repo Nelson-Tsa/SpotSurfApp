@@ -7,31 +7,46 @@ class GalleryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<SurfSpot> _spots = [
+    final List<SurfSpot> spots = [
       SurfSpot(
         name: 'La Gravière',
+        city: 'Hossegor, France',
+        level: 2,
+        difficulty: 2,
         description: 'Hossegor, France',
-        imageUrl: 'assets/images/la_graviere.jpg',
+        imageUrls: ['assets/images/la_graviere.jpg'],
       ),
       SurfSpot(
         name: 'Pipeline',
+        city: 'Oahu, Hawaï',
+        level: 2,
+        difficulty: 2,
         description: 'Oahu, Hawaï',
-        imageUrl: 'assets/images/pipeline.jpg',
+        imageUrls: ['assets/images/pipeline.jpg'],
       ),
       SurfSpot(
         name: 'Uluwatu',
+        city: 'Bali, Indonésie',
+        level: 2,
+        difficulty: 2,
         description: 'Bali, Indonésie',
-        imageUrl: 'assets/images/uluwatu.jpg',
+        imageUrls: ['assets/images/uluwatu.jpg'],
       ),
       SurfSpot(
         name: 'Jeffreys Bay',
+        city: 'Afrique du Sud',
+        level: 2,
+        difficulty: 2,
         description: 'Afrique du Sud',
-        imageUrl: 'assets/images/jeffreys_bay.jpg',
+        imageUrls: ['assets/images/jeffreys_bay.jpg'],
       ),
       SurfSpot(
         name: 'Teahupo\'o',
+        city: 'Tahiti, Polynésie',
+        level: 2,
+        difficulty: 2,
         description: 'Tahiti, Polynésie',
-        imageUrl: 'assets/images/teahupoo.jpg',
+        imageUrls: ['assets/images/teahupoo.jpg'],
       ),
     ];
 
@@ -49,9 +64,9 @@ class GalleryPage extends StatelessWidget {
           mainAxisSpacing: 10,
           childAspectRatio: 0.8,
         ),
-        itemCount: _spots.length,
+        itemCount: spots.length,
         itemBuilder: (context, index) {
-          final spot = _spots[index];
+          final spot = spots[index];
           return SpotCard(spot: spot);
         },
       ),
