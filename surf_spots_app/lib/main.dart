@@ -8,8 +8,8 @@ import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
 import 'package:surf_spots_app/widgets/grid.dart';
 import 'package:surf_spots_app/pages/map_page.dart';
+import 'package:surf_spots_app/widgets/add_spot_button.dart';
 import 'package:surf_spots_app/constants/colors.dart';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {

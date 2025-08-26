@@ -6,6 +6,7 @@ class CustomInputField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextEditingController? controller;
   final void Function(String)? onChanged;
+  final int maxLines;
 
   const CustomInputField({
     super.key,
@@ -14,6 +15,7 @@ class CustomInputField extends StatelessWidget {
     this.keyboardType,
     this.controller,
     this.onChanged,
+    this.maxLines = 1,
   });
 
   @override
@@ -27,8 +29,11 @@ class CustomInputField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           onChanged: onChanged,
+          maxLines: maxLines,
           decoration: InputDecoration(
             labelText: label,
+            filled: true,
+            fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
