@@ -175,7 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: (_selectedIndex == 2 && _isMapPanelOpen)
           ? null
           : FloatingActionButton(
-              onPressed: _incrementCounter,
+              onPressed: () {
+                Navigator.pushNamed(context, '/add-spot');
+              },
               tooltip: 'Incrémenter',
               child: const Icon(Icons.add),
             ),
