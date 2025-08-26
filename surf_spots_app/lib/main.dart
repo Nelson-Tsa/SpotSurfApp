@@ -6,7 +6,7 @@ import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
 import 'package:surf_spots_app/widgets/grid.dart';
 import 'package:surf_spots_app/pages/map_page.dart';
-
+import 'package:surf_spots_app/widgets/add_spot_button.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
@@ -44,14 +44,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  // Le compteur n'est plus utilisé dans cette mise en page, mais on le garde pour le bouton
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -162,10 +154,9 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Incrémenter',
-        child: const Icon(Icons.add),
+      floatingActionButton: AddSpotButton(              
+        onPressed: () {
+        Navigator.pushNamed(context, '/add-spot');},
       ),
     );
   }
