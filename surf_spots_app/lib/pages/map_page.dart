@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
+import 'package:surf_spots_app/pages/spot_detail_page.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  final Function(bool)? onPanelStateChanged;
+
+  const MapPage({super.key, this.onPanelStateChanged});
 
   @override
   State<MapPage> createState() => _MapPageState();
@@ -19,9 +22,14 @@ class _MapPageState extends State<MapPage> {
   String _selectedSpotDescription =
       "Cliquez sur un marqueur pour voir les détails ici.";
   String _selectedSpotCity = "";
+  int _selectedSpotLevel = 0;
+  int _selectedSpotDifficulty = 0;
 
   // SurfSpot object for the selected spot to handle likes
   SurfSpot? _selectedSpot;
+
+  // Variable pour tracker si le panel est ouvert
+  bool _isPanelOpen = false;
 
   // The initial camera position when the map opens
   static const _initialCameraPosition = CameraPosition(
@@ -50,14 +58,22 @@ class _MapPageState extends State<MapPage> {
           setState(() {
             _selectedSpotTitle = 'Teahupoo Wave';
             _selectedSpotCity = 'Tahiti, Polynésie';
+            _selectedSpotLevel = 2;
+            _selectedSpotDifficulty = 2;
             _selectedSpotDescription =
                 'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.';
             _selectedSpot = SurfSpot(
               name: 'Teahupoo Wave',
+              city: 'Tahiti, Polynésie',
+              level: 1,
+              difficulty: 2,
               description:
                   'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.',
-              imageUrl:
-                  'assets/images/teahupoo.jpg', // Vous pouvez ajuster le chemin
+              imageUrls: [
+                'assets/images/teahupoo.jpg',
+                'assets/images/teahupoo2.jpg',
+                'assets/images/teahupoo3.jpg',
+              ],
               isLiked: false,
             );
           });
@@ -72,6 +88,29 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       body: SlidingUpPanel(
         controller: _panelController, // Assign the controller
+        onPanelSlide: (double pos) {
+          // Mettre à jour l'état du panel quand il bouge
+          setState(() {
+            _isPanelOpen =
+                pos > 0.1; // Considérer ouvert si plus de 10% visible
+          });
+          // Notifier le parent du changement d'état
+          widget.onPanelStateChanged?.call(_isPanelOpen);
+        },
+        onPanelOpened: () {
+          setState(() {
+            _isPanelOpen = true;
+          });
+          // Notifier le parent que le panel est ouvert
+          widget.onPanelStateChanged?.call(true);
+        },
+        onPanelClosed: () {
+          setState(() {
+            _isPanelOpen = false;
+          });
+          // Notifier le parent que le panel est fermé
+          widget.onPanelStateChanged?.call(false);
+        },
         // The panel that slides up
         panel: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -168,7 +207,7 @@ class _MapPageState extends State<MapPage> {
                     const SizedBox(height: 15),
                     _selectedSpot != null
                         ? Image.asset(
-                            _selectedSpot!.imageUrl,
+                            _selectedSpot!.imageUrls[0],
                             height: 50,
                             width: 100,
                             fit: BoxFit.cover,
@@ -185,7 +224,7 @@ class _MapPageState extends State<MapPage> {
               // Bottom section with likes count and details button
               Padding(
                 padding: const EdgeInsets.only(
-                  right: 80.0,
+                  right: 0.0,
                 ), // Marge pour éviter le bouton flottant
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -206,7 +245,15 @@ class _MapPageState extends State<MapPage> {
                       ),
                     ElevatedButton(
                       onPressed: () {
-                        // This could navigate to a full details page in the future
+                        if (_selectedSpot != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  SpotDetailPage(spot: _selectedSpot!),
+                            ),
+                          );
+                        }
                       },
                       child: const Text("Détails"),
                     ),

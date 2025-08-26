@@ -47,6 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   // Le compteur n'est plus utilisé dans cette mise en page, mais on le garde pour le bouton
   int _counter = 0;
+  // Variable pour tracker si le panel de la carte est ouvert
+  bool _isMapPanelOpen = false;
 
   void _incrementCounter() {
     setState(() {
@@ -57,6 +59,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+    });
+  }
+
+  void _onMapPanelStateChanged(bool isOpen) {
+    setState(() {
+      _isMapPanelOpen = isOpen;
     });
   }
 
@@ -79,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       // Les autres pages de la barre de navigation
       const ExplorePage(),
-      const MapPage(),
+      MapPage(onPanelStateChanged: _onMapPanelStateChanged),
       const FavorisPage(),
       Center(
         child: ProfilePage(),
@@ -156,11 +164,13 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Incrémenter',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: (_selectedIndex == 2 && _isMapPanelOpen)
+          ? null
+          : FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Incrémenter',
+              child: const Icon(Icons.add),
+            ),
     );
   }
 }
