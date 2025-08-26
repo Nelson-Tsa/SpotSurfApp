@@ -346,7 +346,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
           topLeft: Radius.circular(24.0),
           topRight: Radius.circular(24.0),
         ),
-        minHeight: MediaQuery.of(context).size.height * 0.2,
+        minHeight: MediaQuery.of(context).size.height * 0.6,
         maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
     );
