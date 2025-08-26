@@ -90,56 +90,64 @@ class _HomeScreenState extends State<HomeScreen> {
       MapPage(onPanelStateChanged: _onMapPanelStateChanged),
       const FavorisPage(),
       Center(
-        child: ProfilePage(),
-        // child: Column(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-        //     TextButton(
-        //       style: TextButton.styleFrom(
-        //         foregroundColor: Colors.white,
-        //         backgroundColor: Colors.white,
-        //         maximumSize: const Size(350, 60),
-        //         padding: const EdgeInsets.symmetric(
-        //           horizontal: 32,
-        //           vertical: 16,
-        //         ),
-        //         shape: RoundedRectangleBorder(
-        //           borderRadius: BorderRadius.circular(8),
-        //         ),
-        //       ),
-        //       onPressed: () {
-        //         Navigator.pushNamed(context, '/login');
-        //       },
-        //       child: const Text(
-        //         'Se connecter',
-        //         style: TextStyle(color: Colors.black, fontSize: 18),
-        //       ),
-        //     ),
-        //     const SizedBox(height: 24),
-        //     TextButton(
-        //       style: TextButton.styleFrom(
-        //         foregroundColor: Colors.white,
-        //         backgroundColor: Colors.white,
-        //         minimumSize: const Size(170, 30),
+        // child: ProfilePage(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+                backgroundColor: Colors.black,
+                maximumSize: const Size(350, 60),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              child: const Text(
+                'Se connecter',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+                backgroundColor: Colors.black,
+                minimumSize: const Size(170, 30),
 
-        //         padding: const EdgeInsets.symmetric(
-        //           horizontal: 32,
-        //           vertical: 16,
-        //         ),
-        //         shape: RoundedRectangleBorder(
-        //           borderRadius: BorderRadius.circular(8),
-        //         ),
-        //       ),
-        //       onPressed: () {
-        //         Navigator.pushNamed(context, '/register');
-        //       },
-        //       child: const Text(
-        //         'S\'inscrire',
-        //         style: TextStyle(color: Colors.black, fontSize: 18),
-        //       ),
-        //     ),
-        //   ],
-        // ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              child: const Text(
+                'S\'inscrire',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     ];
 
