@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:surf_spots_app/pages/explore_page.dart';
 import 'package:surf_spots_app/pages/favoris_page.dart';
 import 'package:surf_spots_app/pages/profile_page.dart';
+import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomeScreen(title: 'Surf Spots App'),
       debugShowCheckedModeBanner: false,
+      routes: Routes.appRoutes,
     );
   }
 }
@@ -81,10 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       // Autres pages
       const ExplorePage(),
-      MapPage(
-        key: _mapPageKey,
-        onPanelStateChanged: _onMapPanelStateChanged,
-      ),
+      MapPage(key: _mapPageKey, onPanelStateChanged: _onMapPanelStateChanged),
       const FavorisPage(),
       Center(
         // Page Profile / Connexion
@@ -96,15 +95,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 foregroundColor: Colors.black,
                 backgroundColor: Colors.black,
                 maximumSize: const Size(350, 60),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () {
                 Navigator.pushNamed(context, '/login');
               },
               child: const Text(
                 'Se connecter',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -113,15 +121,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 foregroundColor: Colors.black,
                 backgroundColor: Colors.black,
                 minimumSize: const Size(170, 30),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
               },
               child: const Text(
                 'S\'inscrire',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -150,16 +167,23 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
       ),
       // Bouton flottant pour ajouter un spot sur la map
-      floatingActionButton: (_selectedIndex == 2 && !_isMapPanelOpen)
-          ? FloatingActionButton(
+      floatingActionButton:
+          (_selectedIndex == 4 || (_selectedIndex == 2 && _isMapPanelOpen))
+          ? null
+          : FloatingActionButton(
               onPressed: () {
-                // Appelle MapPage pour ouvrir le panel "ajout spot"
-                _mapPageKey.currentState?.openAddSpotPanel();
+                if (_selectedIndex == 2) {
+                  _mapPageKey.currentState?.openAddSpotPanel();
+                } else {
+                  setState(() => _selectedIndex = 2);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _mapPageKey.currentState?.openAddSpotPanel();
+                  });
+                }
               },
               tooltip: 'Ajouter un spot',
               child: const Icon(Icons.add),
-            )
-          : null,
+            ),
     );
   }
 }

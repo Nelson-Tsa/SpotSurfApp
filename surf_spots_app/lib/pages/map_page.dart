@@ -19,7 +19,8 @@ class MapPageState extends State<MapPage> {
 
   // Informations pour le panel détails spot
   String _selectedSpotTitle = "Aucun spot sélectionné";
-  String _selectedSpotDescription = "Cliquez sur un marqueur pour voir les détails ici.";
+  String _selectedSpotDescription =
+      "Cliquez sur un marqueur pour voir les détails ici.";
   String _selectedSpotCity = "";
   int _selectedSpotLevel = 0;
   int _selectedSpotDifficulty = 0;
@@ -35,6 +36,7 @@ class MapPageState extends State<MapPage> {
     });
     _panelController.open();
   }
+
   // Variables pour le mode GPS
   LatLng? _pickedLocation;
   bool _isPickingLocation = false; // mode sélection activé ou pas
@@ -42,7 +44,7 @@ class MapPageState extends State<MapPage> {
 
   // Position initiale de la map
   static const _initialCameraPosition = CameraPosition(
-    target: LatLng(45.75, 4.85),
+    target: LatLng(47.2180, 1.5528),
     zoom: 5,
   );
 
@@ -89,8 +91,6 @@ class MapPageState extends State<MapPage> {
     );
   }
 
-
-
   // Widget panel détails spot
   Widget buildSpotDetailsPanel() {
     return Column(
@@ -114,7 +114,10 @@ class MapPageState extends State<MapPage> {
               child: Center(
                 child: Text(
                   "Informations sur le spot",
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -141,23 +144,39 @@ class MapPageState extends State<MapPage> {
             children: [
               Text(
                 _selectedSpotTitle,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 0.2),
               Row(
                 children: [
-                  const Icon(Icons.near_me_rounded, size: 18, color: Colors.blue),
+                  const Icon(
+                    Icons.near_me_rounded,
+                    size: 18,
+                    color: Colors.blue,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     _selectedSpotCity,
-                    style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 14),
-              Text(_selectedSpotDescription, style: const TextStyle(fontSize: 16)),
+              Text(
+                _selectedSpotDescription,
+                style: const TextStyle(fontSize: 16),
+              ),
               const SizedBox(height: 20),
-              const Text("Photo :", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                "Photo :",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 15),
               _selectedSpot != null
                   ? Image.asset(
@@ -182,18 +201,16 @@ class MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Bouton flottant pour ajouter un spot directement depuis la map
-      floatingActionButton: FloatingActionButton(
-        onPressed: openAddSpotPanel,
-        child: const Icon(Icons.add),
-      ),
       body: SlidingUpPanel(
         controller: _panelController,
         onPanelSlide: (double pos) {
-          setState(() {
-            _isPanelOpen = pos > 0.1; // Considérer ouvert si plus de 10%
-          });
-          widget.onPanelStateChanged?.call(_isPanelOpen);
+          bool isOpen = pos > 0.1; // Considérer ouvert si plus de 10%
+          if (isOpen != _isPanelOpen) {
+            setState(() {
+              _isPanelOpen = isOpen;
+            });
+            widget.onPanelStateChanged?.call(isOpen);
+          }
         },
         onPanelOpened: () => widget.onPanelStateChanged?.call(true),
         onPanelClosed: () => widget.onPanelStateChanged?.call(false),
@@ -205,7 +222,8 @@ class MapPageState extends State<MapPage> {
                   onPickLocation: () {
                     setState(() {
                       _isPickingLocation = true;
-                      _panelController.close(); // fermer temporairement le panel
+                      _panelController
+                          .close(); // fermer temporairement le panel
                     });
                   },
                 )
@@ -219,19 +237,22 @@ class MapPageState extends State<MapPage> {
               Marker(
                 markerId: const MarkerId("picked"),
                 position: _pickedLocation!,
-                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueBlue,
+                ),
               ),
           },
           onTap: (LatLng pos) {
-            if (_isPickingLocation) {
-              setState(() {
-                _pickedLocation = pos;
-                _isPickingLocation = false;
-              });
+            setState(() {
+              // Déplacer le marqueur vers la nouvelle position
+              _pickedLocation = pos;
               _gpsController.text = "${pos.latitude}, ${pos.longitude}";
-            } else if (_panelController.isPanelOpen) {
-              _panelController.close();
-            }
+
+              // Fermer le panel si ouvert
+              if (_panelController.isPanelOpen) {
+                _panelController.close();
+              }
+            });
           },
         ),
         borderRadius: const BorderRadius.only(
