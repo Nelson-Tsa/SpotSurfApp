@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/pages/spot_detail_page.dart';
+import 'package:surf_spots_app/widgets/container_forms.dart';
 
 class MapPage extends StatefulWidget {
   final Function(bool)? onPanelStateChanged;
@@ -10,52 +11,57 @@ class MapPage extends StatefulWidget {
   const MapPage({super.key, this.onPanelStateChanged});
 
   @override
-  State<MapPage> createState() => _MapPageState();
+  State<MapPage> createState() => MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
-  // Controller to programmatically open/close the sliding panel
+class MapPageState extends State<MapPage> {
   final PanelController _panelController = PanelController();
 
-  // Information for the selected spot to be displayed in the panel
+  // Informations pour le panel détails spot
   String _selectedSpotTitle = "Aucun spot sélectionné";
-  String _selectedSpotDescription =
-      "Cliquez sur un marqueur pour voir les détails ici.";
+  String _selectedSpotDescription = "Cliquez sur un marqueur pour voir les détails ici.";
   String _selectedSpotCity = "";
   int _selectedSpotLevel = 0;
   int _selectedSpotDifficulty = 0;
 
-  // SurfSpot object for the selected spot to handle likes
   SurfSpot? _selectedSpot;
 
-  // Variable pour tracker si le panel est ouvert
+  // Variables de contrôle du panel
   bool _isPanelOpen = false;
+  bool _isAddingSpot = false;
+  void openAddSpotPanel() {
+    setState(() {
+      _isAddingSpot = true; // mode ajout actif
+    });
+    _panelController.open();
+  }
+  // Variables pour le mode GPS
+  LatLng? _pickedLocation;
+  bool _isPickingLocation = false; // mode sélection activé ou pas
+  final TextEditingController _gpsController = TextEditingController();
 
-  // The initial camera position when the map opens
+  // Position initiale de la map
   static const _initialCameraPosition = CameraPosition(
-    target: LatLng(45.75, 4.85), // Centered on Lyon, France by default
+    target: LatLng(45.75, 4.85),
     zoom: 5,
   );
 
-  // Set of markers to display on the map
   final Set<Marker> _markers = {};
 
   @override
   void initState() {
     super.initState();
-    // Initialize markers here
+
+    // Exemple de marqueur
     _markers.add(
       Marker(
         markerId: const MarkerId('Teahupoo'),
-        position: const LatLng(
-          -17.8473,
-          -149.2671,
-        ), // Coordinates for Teahupoo, Tahiti
+        position: const LatLng(-17.8473, -149.2671),
         infoWindow: const InfoWindow(title: 'Teahupoo'),
         onTap: () {
-          // When the marker is tapped, update the state with the spot's info
-          // and open the panel.
+          // On clique sur le marqueur => afficher le détail
           setState(() {
+            _isAddingSpot = false;
             _selectedSpotTitle = 'Teahupoo Wave';
             _selectedSpotCity = 'Tahiti, Polynésie';
             _selectedSpotLevel = 2;
@@ -83,193 +89,147 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SlidingUpPanel(
-        controller: _panelController, // Assign the controller
-        onPanelSlide: (double pos) {
-          // Mettre à jour l'état du panel quand il bouge
-          setState(() {
-            _isPanelOpen =
-                pos > 0.1; // Considérer ouvert si plus de 10% visible
-          });
-          // Notifier le parent du changement d'état
-          widget.onPanelStateChanged?.call(_isPanelOpen);
-        },
-        onPanelOpened: () {
-          setState(() {
-            _isPanelOpen = true;
-          });
-          // Notifier le parent que le panel est ouvert
-          widget.onPanelStateChanged?.call(true);
-        },
-        onPanelClosed: () {
-          setState(() {
-            _isPanelOpen = false;
-          });
-          // Notifier le parent que le panel est fermé
-          widget.onPanelStateChanged?.call(false);
-        },
-        // The panel that slides up
-        panel: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Handle to indicate the panel is draggable
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+
+
+  // Widget panel détails spot
+  Widget buildSpotDetailsPanel() {
+    return Column(
+      children: [
+        // Barre de drag du panel
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+          child: Container(
+            width: 40,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        // Header avec titre et bouton like
+        Row(
+          children: [
+            Expanded(
+              child: Center(
+                child: Text(
+                  "Informations sur le spot",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
-              // Header with title and like button
+            ),
+            if (_selectedSpot != null)
+              IconButton(
+                icon: Icon(
+                  _selectedSpot!.isLiked ?? false
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: Colors.blue,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedSpot!.isLiked = !(_selectedSpot!.isLiked ?? false);
+                  });
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _selectedSpotTitle,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 0.2),
               Row(
                 children: [
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        "Informations sur le spot",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                  const Icon(Icons.near_me_rounded, size: 18, color: Colors.blue),
+                  const SizedBox(width: 4),
+                  Text(
+                    _selectedSpotCity,
+                    style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
                   ),
-                  if (_selectedSpot != null)
-                    IconButton(
-                      icon: Icon(
-                        _selectedSpot!.isLiked ?? false
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: Colors.blue,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _selectedSpot!.isLiked =
-                              !(_selectedSpot!.isLiked ?? false);
-                        });
-                      },
-                    ),
                 ],
               ),
-              const SizedBox(height: 8),
-              // Spot information aligned to the left
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _selectedSpotTitle,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+              const SizedBox(height: 14),
+              Text(_selectedSpotDescription, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 20),
+              const Text("Photo :", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 15),
+              _selectedSpot != null
+                  ? Image.asset(
+                      _selectedSpot!.imageUrls[0],
+                      height: 50,
+                      width: 100,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      'assets/images/placeholder.png',
+                      height: 100,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(height: 0.2),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.near_me_rounded,
-                          size: 18,
-                          color: Colors.blue,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _selectedSpotCity,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      _selectedSpotDescription,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 20),
-                    // Photo section aligned to the left
-                    Text(
-                      "Photo :",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    _selectedSpot != null
-                        ? Image.asset(
-                            _selectedSpot!.imageUrls[0],
-                            height: 50,
-                            width: 100,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            'assets/images/placeholder.png',
-                            height: 100,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                  ],
-                ),
-              ),
-              // Bottom section with likes count and details button
-              Padding(
-                padding: const EdgeInsets.only(
-                  right: 0.0,
-                ), // Marge pour éviter le bouton flottant
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (_selectedSpot != null)
-                      Row(
-                        children: [
-                          Icon(Icons.favorite, color: Colors.blue, size: 16),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${_selectedSpot!.isLiked == true ? '1' : '0'} like${_selectedSpot!.isLiked == true ? '' : 's'}",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_selectedSpot != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SpotDetailPage(spot: _selectedSpot!),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text("Détails"),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
-        // The main content behind the panel
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // Bouton flottant pour ajouter un spot directement depuis la map
+      floatingActionButton: FloatingActionButton(
+        onPressed: openAddSpotPanel,
+        child: const Icon(Icons.add),
+      ),
+      body: SlidingUpPanel(
+        controller: _panelController,
+        onPanelSlide: (double pos) {
+          setState(() {
+            _isPanelOpen = pos > 0.1; // Considérer ouvert si plus de 10%
+          });
+          widget.onPanelStateChanged?.call(_isPanelOpen);
+        },
+        onPanelOpened: () => widget.onPanelStateChanged?.call(true),
+        onPanelClosed: () => widget.onPanelStateChanged?.call(false),
+        panel: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _isAddingSpot
+              ? ContainerForms(
+                  gpsController: _gpsController,
+                  onPickLocation: () {
+                    setState(() {
+                      _isPickingLocation = true;
+                      _panelController.close(); // fermer temporairement le panel
+                    });
+                  },
+                )
+              : buildSpotDetailsPanel(),
+        ),
         body: GoogleMap(
           initialCameraPosition: _initialCameraPosition,
-          markers: _markers,
+          markers: {
+            ..._markers,
+            if (_pickedLocation != null)
+              Marker(
+                markerId: const MarkerId("picked"),
+                position: _pickedLocation!,
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              ),
+          },
           onTap: (LatLng pos) {
-            // If the user taps on the map (not on a marker), close the panel.
-            if (_panelController.isPanelOpen) {
+            if (_isPickingLocation) {
+              setState(() {
+                _pickedLocation = pos;
+                _isPickingLocation = false;
+              });
+              _gpsController.text = "${pos.latitude}, ${pos.longitude}";
+            } else if (_panelController.isPanelOpen) {
               _panelController.close();
             }
           },
@@ -278,10 +238,8 @@ class _MapPageState extends State<MapPage> {
           topLeft: Radius.circular(24.0),
           topRight: Radius.circular(24.0),
         ),
-        minHeight: 0, // The panel is completely hidden when closed
-        maxHeight:
-            MediaQuery.of(context).size.height *
-            0.5, // Panel takes half the screen
+        minHeight: 0,
+        maxHeight: MediaQuery.of(context).size.height * 0.5,
       ),
     );
   }

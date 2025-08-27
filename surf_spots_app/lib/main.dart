@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:surf_spots_app/pages/explore_page.dart';
 import 'package:surf_spots_app/pages/favoris_page.dart';
 import 'package:surf_spots_app/pages/profile_page.dart';
-import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/widgets/searchbar.dart';
 import 'package:surf_spots_app/widgets/grid.dart';
 import 'package:surf_spots_app/pages/map_page.dart';
-import 'package:surf_spots_app/widgets/add_spot_button.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -30,7 +28,6 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomeScreen(title: 'Surf Spots App'),
       debugShowCheckedModeBanner: false,
-      routes: Routes.appRoutes,
     );
   }
 }
@@ -45,16 +42,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  // Le compteur n'est plus utilisé dans cette mise en page, mais on le garde pour le bouton
-  int _counter = 0;
+
   // Variable pour tracker si le panel de la carte est ouvert
   bool _isMapPanelOpen = false;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  // On garde une clé pour accéder à MapPage et ouvrir le panel depuis le bouton +
+  final GlobalKey<MapPageState> _mapPageKey = GlobalKey<MapPageState>();
 
   void _onItemTapped(int index) {
     setState(() {
@@ -70,27 +63,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. On définit la liste des pages ici pour qu'elle soit toujours à jour.
+    // Liste des pages utilisées par la barre de navigation
     final List<Widget> pages = [
-      // Page 0: "Accueil"
+      // Page 0: Accueil
       const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 2. Éléments non défilables en haut
+          // Barre de recherche en haut
           SearchBarSpot(),
-          SizedBox(height: 0.5), // Espace entre les widgets
+          SizedBox(height: 0.5),
+          // Carrousel
           Carroussel(),
-          SizedBox(height: 0.3), // Espace entre les widgets
-          // 3. La grille prend tout l'espace restant et est défilable
+          SizedBox(height: 0.3),
+          // Grille des spots
           Expanded(child: GalleryPage()),
         ],
       ),
-      // Les autres pages de la barre de navigation
+      // Autres pages
       const ExplorePage(),
-      MapPage(onPanelStateChanged: _onMapPanelStateChanged),
+      MapPage(
+        key: _mapPageKey,
+        onPanelStateChanged: _onMapPanelStateChanged,
+      ),
       const FavorisPage(),
       Center(
-        // child: ProfilePage(),
+        // Page Profile / Connexion
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -99,24 +96,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 foregroundColor: Colors.black,
                 backgroundColor: Colors.black,
                 maximumSize: const Size(350, 60),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () {
                 Navigator.pushNamed(context, '/login');
               },
               child: const Text(
                 'Se connecter',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
             const SizedBox(height: 24),
@@ -125,25 +113,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 foregroundColor: Colors.black,
                 backgroundColor: Colors.black,
                 minimumSize: const Size(170, 30),
-
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
               },
               child: const Text(
                 'S\'inscrire',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -153,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: Container(
-        // Le fond d'écran est conservé
+        // Fond d'écran sauf sur la page 4
         decoration: _selectedIndex == 4
             ? null
             : const BoxDecoration(
@@ -162,7 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   fit: BoxFit.cover,
                 ),
               ),
-        // 4. Le contenu par-dessus le fond d'écran
         child: Padding(
           padding: const EdgeInsets.only(top: 50.0),
           child: pages.elementAt(_selectedIndex),
@@ -172,15 +149,17 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-      floatingActionButton: (_selectedIndex == 2 && _isMapPanelOpen)
-          ? null
-          : FloatingActionButton(
+      // Bouton flottant pour ajouter un spot sur la map
+      floatingActionButton: (_selectedIndex == 2 && !_isMapPanelOpen)
+          ? FloatingActionButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/add-spot');
+                // Appelle MapPage pour ouvrir le panel "ajout spot"
+                _mapPageKey.currentState?.openAddSpotPanel();
               },
-              tooltip: 'Incrémenter',
+              tooltip: 'Ajouter un spot',
               child: const Icon(Icons.add),
-            ),
+            )
+          : null,
     );
   }
 }

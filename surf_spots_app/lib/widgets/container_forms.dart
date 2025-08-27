@@ -3,12 +3,19 @@ import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
 
 class ContainerForms extends StatelessWidget {
-  const ContainerForms({super.key});
+  final TextEditingController gpsController;
+  final VoidCallback onPickLocation;
+
+  const ContainerForms({
+    super.key,
+    required this.gpsController,
+    required this.onPickLocation,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(6.0), // moins d'espace autour du container
+      padding: const EdgeInsets.all(6.0),
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(200),
         borderRadius: BorderRadius.circular(15.0),
@@ -35,68 +42,48 @@ class ContainerForms extends StatelessWidget {
           ),
 
           const SizedBox(height: 8),
-
-          const Text(
-            'Ville',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
+          const Text('Ville', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           CustomInputField(label: 'Ville', keyboardType: TextInputType.text),
 
           const SizedBox(height: 4),
-
-          const Text(
-            'Nom du spot',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          CustomInputField(
-            label: 'Nom du spot',
-            keyboardType: TextInputType.text,
-          ),
+          const Text('Nom du spot', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          CustomInputField(label: 'Nom du spot', keyboardType: TextInputType.text),
 
           const SizedBox(height: 4),
-
-          const Text(
-            'Description',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          CustomInputField(
-            label: 'Description',
-            keyboardType: TextInputType.multiline,
-          ),
+          const Text('Description', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          CustomInputField(label: 'Description', keyboardType: TextInputType.multiline),
 
           const SizedBox(height: 4),
-
-          const Text(
-            'Niveau',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
+          const Text('Niveau', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           CustomInputField(label: 'Niveau', keyboardType: TextInputType.text),
 
           const SizedBox(height: 4),
-
-          const Text(
-            'Difficulté',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          CustomInputField(
-            label: 'Difficulté',
-            keyboardType: TextInputType.text,
-          ),
+          const Text('Difficulté', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          CustomInputField(label: 'Difficulté', keyboardType: TextInputType.text),
 
           const SizedBox(height: 4),
 
-          Icon(Icons.near_me_rounded, color: Colors.blue),
-          CustomInputField(
-            label: 'Point GPS',
-            keyboardType: TextInputType.text,
+          // ======== GPS FIELD =========
+          GestureDetector(
+            onTap: onPickLocation,
+            child: Row(
+              children: [
+                Icon(Icons.near_me_rounded, color: Colors.blue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: CustomInputField(
+                    controller: gpsController,
+                    label: 'Point GPS',
+                    keyboardType: TextInputType.text,
+                  ),
+                ),
+              ],
+            ),
           ),
+          // ============================
 
           const SizedBox(height: 4),
-
-          const Text(
-            'Photo',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
+          const Text('Photo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           Center(
             child: Container(
               padding: const EdgeInsets.all(12),
@@ -134,7 +121,6 @@ class ContainerForms extends StatelessWidget {
           ),
 
           const SizedBox(height: 8),
-
           Center(
             child: SizedBox(
               width: 150,
@@ -142,21 +128,14 @@ class ContainerForms extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Center(child: Text('Spot ajouté !')),
-                    ),
+                    const SnackBar(content: Center(child: Text('Spot ajouté !'))),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
                   backgroundColor: const Color(0xFF1A73E8),
                 ),
-                child: const Text(
-                  'Valider',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
+                child: const Text('Valider', style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
             ),
           ),
