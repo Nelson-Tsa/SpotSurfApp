@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/pages/explore_page.dart';
 import 'package:surf_spots_app/pages/favoris_page.dart';
-import 'package:surf_spots_app/pages/profile_page.dart';
 import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
