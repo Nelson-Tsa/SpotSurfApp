@@ -229,20 +229,22 @@ class MapPageState extends State<MapPage> {
     if (_formKey.currentState!.validate() &&
         _selectedNiveau != null &&
         _selectedDifficulte != null &&
-        _pickedLocation != null) {
+        _images.isNotEmpty && // Au moins une photo
+        _pickedLocation !=
+            null // Point GPS sélectionné
+            ) {
       // Crée un nouvel objet SurfSpot
       final newSpot = SurfSpot(
         name: _spotController.text,
         city: _villeController.text,
         description: _descriptionController.text,
-        level: _selectedNiveau ?? 1, // <-- correction ici
-        difficulty: _selectedDifficulte ?? 1, // <-- correction ici
+        level: _selectedNiveau ?? 1,
+        difficulty: _selectedDifficulte ?? 1,
         imageUrls: _images.map((img) => img.path).toList(),
         isLiked: false,
       );
 
       setState(() {
-        // Ajoute le marker avec toutes les infos
         _markers.add(
           Marker(
             markerId: MarkerId(DateTime.now().toString()),
@@ -266,7 +268,6 @@ class MapPageState extends State<MapPage> {
             },
           ),
         );
-        // Réinitialise la sélection temporaire
         _pickedLocation = null;
         _isAddingSpot = false;
       });
@@ -279,7 +280,7 @@ class MapPageState extends State<MapPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Veuillez remplir tous les champs et choisir un point sur la carte',
+            'Veuillez remplir tous les champs, ajouter au moins une photo et choisir un point GPS',
           ),
         ),
       );
@@ -301,6 +302,12 @@ class MapPageState extends State<MapPage> {
         SnackBar(content: Text('Erreur lors de la sélection des images')),
       );
     }
+  }
+
+  void _removeImage(XFile image) {
+    setState(() {
+      _images.remove(image);
+    });
   }
 
   // Affichage de la photo principale du spot
@@ -359,6 +366,7 @@ class MapPageState extends State<MapPage> {
                   onValidate: _validateAndAddSpot,
                   images: _images, // AJOUTE CET ARGUMENT
                   onAddImage: _pickImages, // AJOUTE CET ARGUMENT
+                  onRemoveImage: _removeImage, // AJOUTE CET ARGUMENT
                 )
               : buildSpotDetailsPanel(),
         ),

@@ -20,6 +20,7 @@ class ContainerForms extends StatelessWidget {
 
   final List<XFile> images;
   final VoidCallback onAddImage;
+  final void Function(XFile) onRemoveImage;
 
   const ContainerForms({
     super.key,
@@ -36,6 +37,7 @@ class ContainerForms extends StatelessWidget {
     required this.onValidate, // AJOUTE CE PARAMÈTRE
     required this.images,
     required this.onAddImage,
+    required this.onRemoveImage,
   });
 
   @override
@@ -265,15 +267,48 @@ class ContainerForms extends StatelessWidget {
                         spacing: 8,
                         children: images
                             .map(
-                              (img) => Image.file(
-                                File(img.path),
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
+                              (img) => Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Image.file(
+                                    File(img.path),
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Positioned(
+                                    right: -10,
+                                    top: -10,
+                                    child: GestureDetector(
+                                      onTap: () => onRemoveImage(img),
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.remove,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             )
                             .toList(),
                       ),
+                      if (images.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 3.0),
+                          child: Text(
+                            'Veuillez ajouter au moins une photo',
+                            style: TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
                     ],
                   ),
                 ),
