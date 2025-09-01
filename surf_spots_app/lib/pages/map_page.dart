@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
+import 'package:surf_spots_app/pages/spot_detail_page.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
 
 class MapPage extends StatefulWidget {
