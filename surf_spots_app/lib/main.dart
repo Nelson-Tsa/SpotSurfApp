@@ -166,22 +166,25 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
       ),
       // Bouton flottant pour ajouter un spot sur la map
-      floatingActionButton:
-          (_selectedIndex == 4 || (_selectedIndex == 2 && _isMapPanelOpen))
+      floatingActionButton: (_selectedIndex == 4)
           ? null
-          : FloatingActionButton(
-              onPressed: () {
-                if (_selectedIndex == 2) {
-                  _mapPageKey.currentState?.openAddSpotPanel();
-                } else {
-                  setState(() => _selectedIndex = 2);
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
+          : AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: (_selectedIndex == 2 && _isMapPanelOpen) ? 0.0 : 1.0,
+              child: FloatingActionButton(
+                onPressed: () {
+                  if (_selectedIndex == 2) {
                     _mapPageKey.currentState?.openAddSpotPanel();
-                  });
-                }
-              },
-              tooltip: 'Ajouter un spot',
-              child: const Icon(Icons.add),
+                  } else {
+                    setState(() => _selectedIndex = 2);
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _mapPageKey.currentState?.openAddSpotPanel();
+                    });
+                  }
+                },
+                tooltip: 'Ajouter un spot',
+                child: const Icon(Icons.add),
+              ),
             ),
     );
   }

@@ -16,7 +16,7 @@ class MapPage extends StatefulWidget {
 class MapPageState extends State<MapPage> {
   final PanelController _panelController = PanelController();
 
-  // Informations pour le panel détails spot
+  // Infos pour le spot sélectionné
   String _selectedSpotTitle = "Aucun spot sélectionné";
   String _selectedSpotDescription =
       "Cliquez sur un marqueur pour voir les détails ici.";
@@ -26,19 +26,19 @@ class MapPageState extends State<MapPage> {
 
   SurfSpot? _selectedSpot;
 
-  // Variables de contrôle du panel
+  // Variables panel
   bool _isPanelOpen = false;
   bool _isAddingSpot = false;
   void openAddSpotPanel() {
     setState(() {
-      _isAddingSpot = true; // mode ajout actif
+      _isAddingSpot = true;
     });
     _panelController.open();
   }
 
-  // Variables pour le mode GPS
+  // Mode GPS
   LatLng? _pickedLocation;
-  bool _isPickingLocation = false; // mode sélection activé ou pas
+  bool _isPickingLocation = false;
   final TextEditingController _gpsController = TextEditingController();
 
   // Position initiale de la map
@@ -53,14 +53,13 @@ class MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
 
-    // Exemple de marqueur
+    // Exemple de spot
     _markers.add(
       Marker(
         markerId: const MarkerId('Teahupoo'),
         position: const LatLng(-17.8473, -149.2671),
         infoWindow: const InfoWindow(title: 'Teahupoo'),
         onTap: () {
-          // On clique sur le marqueur => afficher le détail
           setState(() {
             _isAddingSpot = false;
             _selectedSpotTitle = 'Teahupoo Wave';
@@ -90,11 +89,10 @@ class MapPageState extends State<MapPage> {
     );
   }
 
-  // Widget panel détails spot
   Widget buildSpotDetailsPanel() {
     return Column(
       children: [
-        // Barre de drag du panel
+        // Drag handle
         Padding(
           padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
           child: Container(
@@ -106,17 +104,14 @@ class MapPageState extends State<MapPage> {
             ),
           ),
         ),
-        // Header avec titre et bouton like
+        // Header
         Row(
           children: [
-            Expanded(
+            const Expanded(
               child: Center(
                 child: Text(
                   "Informations sur le spot",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -148,7 +143,6 @@ class MapPageState extends State<MapPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 0.2),
               Row(
                 children: [
                   const Icon(
@@ -180,8 +174,8 @@ class MapPageState extends State<MapPage> {
               _selectedSpot != null
                   ? Image.asset(
                       _selectedSpot!.imageUrls[0],
-                      height: 50,
-                      width: 100,
+                      height: 80,
+                      width: 150,
                       fit: BoxFit.cover,
                     )
                   : Image.asset(
@@ -193,6 +187,37 @@ class MapPageState extends State<MapPage> {
             ],
           ),
         ),
+        // Footer : likes + bouton détails
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            if (_selectedSpot != null)
+              Row(
+                children: [
+                  const Icon(Icons.favorite, color: Colors.blue, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${_selectedSpot!.isLiked == true ? '1' : '0'} like${_selectedSpot!.isLiked == true ? '' : 's'}",
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ElevatedButton(
+              onPressed: () {
+                if (_selectedSpot != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          SpotDetailPage(spot: _selectedSpot!),
+                    ),
+                  );
+                }
+              },
+              child: const Text("Détails"),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -203,7 +228,7 @@ class MapPageState extends State<MapPage> {
       body: SlidingUpPanel(
         controller: _panelController,
         onPanelSlide: (double pos) {
-          bool isOpen = pos > 0.1; // Considérer ouvert si plus de 10%
+          bool isOpen = pos > 0.1;
           if (isOpen != _isPanelOpen) {
             setState(() {
               _isPanelOpen = isOpen;
@@ -221,8 +246,7 @@ class MapPageState extends State<MapPage> {
                   onPickLocation: () {
                     setState(() {
                       _isPickingLocation = true;
-                      _panelController
-                          .close(); // fermer temporairement le panel
+                      _panelController.close();
                     });
                   },
                 )
@@ -243,11 +267,8 @@ class MapPageState extends State<MapPage> {
           },
           onTap: (LatLng pos) {
             setState(() {
-              // Déplacer le marqueur vers la nouvelle position
               _pickedLocation = pos;
               _gpsController.text = "${pos.latitude}, ${pos.longitude}";
-
-              // Fermer le panel si ouvert
               if (_panelController.isPanelOpen) {
                 _panelController.close();
               }
