@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
       ),
       // Bouton flottant pour ajouter un spot sur la map
-      floatingActionButton:  (_selectedIndex == 2 && _isMapPanelOpen)
+      floatingActionButton:  (_selectedIndex == 2 && _isMapPanelOpen) || _selectedIndex == 4
           ? null
           : FloatingActionButton(
               onPressed: () {
