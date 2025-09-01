@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
+import 'dart:io';
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -36,7 +37,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
             width: 30,
             height: 30,
             errorBuilder: (context, error, stackTrace) {
-              // Fallback to default icon if image not found
               return Icon(
                 Icons.surfing,
                 color: index < level ? Colors.blue : Colors.grey[300],
@@ -61,7 +61,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
             width: 30,
             height: 30,
             errorBuilder: (context, error, stackTrace) {
-              // Fallback to default icon if image not found
               return Icon(
                 Icons.waves,
                 color: index < difficulty ? Colors.orange : Colors.grey[300],
@@ -75,11 +74,10 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   }
 
   Widget _buildPhotoGallery() {
-    // Filter out empty or null image URLs
     final validImages = _spot.imageUrls.where((url) => url.isNotEmpty).toList();
 
     if (validImages.isEmpty) {
-      return const SizedBox.shrink(); // Don't show gallery if no valid images
+      return const SizedBox.shrink();
     }
 
     return Column(
@@ -87,7 +85,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
       children: [
         Text(
           validImages.length == 1 ? "Photo :" : "Photos :",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -96,10 +94,12 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
             scrollDirection: Axis.horizontal,
             itemCount: validImages.length,
             itemBuilder: (context, index) {
+              final imgPath = validImages[index];
+              final isAsset = imgPath.startsWith('assets/');
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    _backgroundImageUrl = validImages[index];
+                    _backgroundImageUrl = imgPath;
                   });
                 },
                 child: Container(
@@ -108,7 +108,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _backgroundImageUrl == validImages[index]
+                      color: _backgroundImageUrl == imgPath
                           ? Colors.blue
                           : Colors.transparent,
                       width: 2,
@@ -116,19 +116,33 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: Image.asset(
-                      validImages[index],
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[300],
-                          child: Icon(
-                            Icons.image_not_supported,
-                            color: Colors.grey[600],
+                    child: isAsset
+                        ? Image.asset(
+                            imgPath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey[600],
+                                ),
+                              );
+                            },
+                          )
+                        : Image.file(
+                            File(imgPath),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[300],
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey[600],
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
                   ),
                 ),
               );
@@ -136,6 +150,22 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBackgroundImage() {
+    if (_backgroundImageUrl.isEmpty) return const SizedBox.shrink();
+    final isAsset = _backgroundImageUrl.startsWith('assets/');
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: isAsset
+              ? AssetImage(_backgroundImageUrl)
+              : FileImage(File(_backgroundImageUrl)) as ImageProvider,
+          fit: BoxFit.contain,
+          alignment: Alignment.center,
+        ),
+      ),
     );
   }
 
@@ -147,7 +177,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Handle to indicate the panel is draggable
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
                 child: Container(
@@ -159,14 +188,13 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   ),
                 ),
               ),
-              // Header with title and back arrow
               Row(
                 children: [
                   Expanded(
                     child: Center(
                       child: Text(
                         "Détails du spot",
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -174,7 +202,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.blue),
+                    icon: const Icon(Icons.arrow_back, color: Colors.blue),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -182,7 +210,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                 ],
               ),
               const SizedBox(height: 8),
-              // Spot information
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -198,7 +225,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.near_me_rounded,
                             size: 18,
                             color: Colors.blue,
@@ -219,15 +246,13 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                         style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 20),
-                      // Photo gallery
                       _buildPhotoGallery(),
                       const SizedBox(height: 20),
-                      // Level indicator
                       Row(
                         children: [
                           Text(
                             "Niveau : ",
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -236,12 +261,11 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Difficulty indicator
                       Row(
                         children: [
                           Text(
                             "Difficulté : ",
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -250,7 +274,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      // Likes section
                       Row(
                         children: [
                           IconButton(
@@ -282,25 +305,15 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
             ],
           ),
         ),
-        // Background image
         body: Stack(
           children: [
             // Background image with 1/3 height and centered
             Positioned(
-              top: MediaQuery.of(context).size.height * 0.1, // Décalé du haut
+              top: MediaQuery.of(context).size.height * 0.1,
               left: 0,
               right: 0,
-              height:
-                  MediaQuery.of(context).size.height * 0.3, // 1/3 de la page
-              child: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(_backgroundImageUrl),
-                    fit: BoxFit.contain, // Garde les proportions sans étirement
-                    alignment: Alignment.center,
-                  ),
-                ),
-              ),
+              height: MediaQuery.of(context).size.height * 0.3,
+              child: _buildBackgroundImage(),
             ),
             // Dark overlay for better readability - only on image area
             Positioned(

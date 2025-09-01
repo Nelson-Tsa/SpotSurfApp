@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/pages/spot_detail_page.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
+import 'dart:io';
 
 class MapPage extends StatefulWidget {
   final Function(bool)? onPanelStateChanged;
@@ -57,6 +59,8 @@ class MapPageState extends State<MapPage> {
   final TextEditingController _villeController = TextEditingController();
   final TextEditingController _spotController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+
+  List<XFile> _images = [];
 
   @override
   void initState() {
@@ -181,12 +185,7 @@ class MapPageState extends State<MapPage> {
               ),
               const SizedBox(height: 15),
               _selectedSpot != null && _selectedSpot!.imageUrls.isNotEmpty
-                  ? Image.asset(
-                      _selectedSpot!.imageUrls[0],
-                      height: 80,
-                      width: 150,
-                      fit: BoxFit.cover,
-                    )
+                  ? buildSpotImage(_selectedSpot!.imageUrls[0])
                   : const SizedBox.shrink(),
             ],
           ),
@@ -235,10 +234,10 @@ class MapPageState extends State<MapPage> {
       final newSpot = SurfSpot(
         name: _spotController.text,
         city: _villeController.text,
-        level: _selectedNiveau!,
-        difficulty: _selectedDifficulte!,
         description: _descriptionController.text,
-        imageUrls: [], // Ajoute les images si tu as la logique
+        level: _selectedNiveau ?? 1, // <-- correction ici
+        difficulty: _selectedDifficulte ?? 1, // <-- correction ici
+        imageUrls: _images.map((img) => img.path).toList(),
         isLiked: false,
       );
 
@@ -287,6 +286,39 @@ class MapPageState extends State<MapPage> {
     }
   }
 
+  Future<void> _pickImages() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final List<XFile> picked = await picker.pickMultiImage();
+      if (picked.isNotEmpty) {
+        setState(() {
+          _images.addAll(picked);
+        });
+      }
+    } catch (e) {
+      print('Erreur lors de la sélection des images : $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la sélection des images')),
+      );
+    }
+  }
+
+  // Affichage de la photo principale du spot
+  Widget buildSpotImage(String imagePath) {
+    // Si le chemin commence par 'assets/', c'est une image d'asset
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath, height: 50, width: 70, fit: BoxFit.cover);
+    } else {
+      // Sinon, c'est une image locale (fichier)
+      return Image.file(
+        File(imagePath),
+        height: 50,
+        width: 70,
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -324,7 +356,9 @@ class MapPageState extends State<MapPage> {
                       setState(() => _selectedNiveau = val),
                   onDifficulteChanged: (val) =>
                       setState(() => _selectedDifficulte = val),
-                  onValidate: _validateAndAddSpot, // AJOUTE CE CALLBACK
+                  onValidate: _validateAndAddSpot,
+                  images: _images, // AJOUTE CET ARGUMENT
+                  onAddImage: _pickImages, // AJOUTE CET ARGUMENT
                 )
               : buildSpotDetailsPanel(),
         ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_input_field.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ContainerForms extends StatelessWidget {
   final TextEditingController gpsController;
@@ -16,6 +18,9 @@ class ContainerForms extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final VoidCallback onValidate; // AJOUTE CE PARAMÈTRE
 
+  final List<XFile> images;
+  final VoidCallback onAddImage;
+
   const ContainerForms({
     super.key,
     required this.formKey,
@@ -29,6 +34,8 @@ class ContainerForms extends StatelessWidget {
     required this.onNiveauChanged,
     required this.onDifficulteChanged,
     required this.onValidate, // AJOUTE CE PARAMÈTRE
+    required this.images,
+    required this.onAddImage,
   });
 
   @override
@@ -236,18 +243,36 @@ class ContainerForms extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
+                      GestureDetector(
+                        onTap: onAddImage,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 28,
-                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Affiche les images sélectionnées
+                      Wrap(
+                        spacing: 8,
+                        children: images
+                            .map(
+                              (img) => Image.file(
+                                File(img.path),
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                            .toList(),
                       ),
                     ],
                   ),
