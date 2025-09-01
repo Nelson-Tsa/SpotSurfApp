@@ -50,6 +50,9 @@ class MapPageState extends State<MapPage> {
 
   final Set<Marker> _markers = {};
 
+  int? _selectedNiveau;
+  int? _selectedDifficulte;
+
   @override
   void initState() {
     super.initState();
@@ -250,6 +253,12 @@ class MapPageState extends State<MapPage> {
                       _panelController.close();
                     });
                   },
+                  selectedNiveau: _selectedNiveau,
+                  selectedDifficulte: _selectedDifficulte,
+                  onNiveauChanged: (val) =>
+                      setState(() => _selectedNiveau = val),
+                  onDifficulteChanged: (val) =>
+                      setState(() => _selectedDifficulte = val),
                 )
               : buildSpotDetailsPanel(),
         ),

@@ -5,10 +5,20 @@ class ContainerForms extends StatelessWidget {
   final TextEditingController gpsController;
   final VoidCallback onPickLocation;
 
+  // Ajoute ces variables dans ContainerForms (si tu veux gérer l'état ici)
+  final int? selectedNiveau;
+  final int? selectedDifficulte;
+  final ValueChanged<int?> onNiveauChanged;
+  final ValueChanged<int?> onDifficulteChanged;
+
   const ContainerForms({
     super.key,
     required this.gpsController,
     required this.onPickLocation,
+    required this.selectedNiveau,
+    required this.selectedDifficulte,
+    required this.onNiveauChanged,
+    required this.onDifficulteChanged,
   });
 
   @override
@@ -68,21 +78,66 @@ class ContainerForms extends StatelessWidget {
               keyboardType: TextInputType.multiline,
             ),
 
-            const SizedBox(height: 4),
+            // Champ Niveau stylisé
             const Text(
               'Niveau',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            CustomInputField(label: 'Niveau', keyboardType: TextInputType.text),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(51),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Row(
+                children: [
+                  DropdownButton<int>(
+                    value: selectedNiveau,
+                    items: [1, 2, 3]
+                        .map(
+                          (val) =>
+                              DropdownMenuItem(value: val, child: Text('$val')),
+                        )
+                        .toList(),
+                    onChanged: onNiveauChanged,
+                    underline: Container(),
+                    dropdownColor: Colors.white,
+                  ),
+                ],
+              ),
+            ),
 
-            const SizedBox(height: 4),
+            // Champ Difficulté stylisé
             const Text(
               'Difficulté',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            CustomInputField(
-              label: 'Difficulté',
-              keyboardType: TextInputType.text,
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(51),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Row(
+                children: [
+                  DropdownButton<int>(
+                    value: selectedDifficulte,
+                    items: [1, 2, 3]
+                        .map(
+                          (val) =>
+                              DropdownMenuItem(value: val, child: Text('$val')),
+                        )
+                        .toList(),
+                    onChanged: onDifficulteChanged,
+                    underline: Container(),
+                    dropdownColor: Colors.white,
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 4),
