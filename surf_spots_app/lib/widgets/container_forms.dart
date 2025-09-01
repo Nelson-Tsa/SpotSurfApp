@@ -14,6 +14,7 @@ class ContainerForms extends StatelessWidget {
   final ValueChanged<int?> onDifficulteChanged;
 
   final GlobalKey<FormState> formKey;
+  final VoidCallback onValidate; // AJOUTE CE PARAMÈTRE
 
   const ContainerForms({
     super.key,
@@ -27,6 +28,7 @@ class ContainerForms extends StatelessWidget {
     required this.selectedDifficulte,
     required this.onNiveauChanged,
     required this.onDifficulteChanged,
+    required this.onValidate, // AJOUTE CE PARAMÈTRE
   });
 
   @override
@@ -257,23 +259,7 @@ class ContainerForms extends StatelessWidget {
                   width: 150,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (formKey.currentState!.validate() &&
-                          selectedNiveau != null &&
-                          selectedDifficulte != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Center(child: Text('Spot ajouté !')),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Veuillez remplir tous les champs'),
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: onValidate, // UTILISE LE CALLBACK ICI
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(999),

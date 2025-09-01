@@ -180,19 +180,14 @@ class MapPageState extends State<MapPage> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
-              _selectedSpot != null
+              _selectedSpot != null && _selectedSpot!.imageUrls.isNotEmpty
                   ? Image.asset(
                       _selectedSpot!.imageUrls[0],
                       height: 80,
                       width: 150,
                       fit: BoxFit.cover,
                     )
-                  : Image.asset(
-                      'assets/images/placeholder.png',
-                      height: 100,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                  : const SizedBox.shrink(),
             ],
           ),
         ),
@@ -229,6 +224,67 @@ class MapPageState extends State<MapPage> {
         ),
       ],
     );
+  }
+
+  void _validateAndAddSpot() {
+    if (_formKey.currentState!.validate() &&
+        _selectedNiveau != null &&
+        _selectedDifficulte != null &&
+        _pickedLocation != null) {
+      // Crée un nouvel objet SurfSpot
+      final newSpot = SurfSpot(
+        name: _spotController.text,
+        city: _villeController.text,
+        level: _selectedNiveau!,
+        difficulty: _selectedDifficulte!,
+        description: _descriptionController.text,
+        imageUrls: [], // Ajoute les images si tu as la logique
+        isLiked: false,
+      );
+
+      setState(() {
+        // Ajoute le marker avec toutes les infos
+        _markers.add(
+          Marker(
+            markerId: MarkerId(DateTime.now().toString()),
+            position: _pickedLocation!,
+            infoWindow: InfoWindow(
+              title: newSpot.name,
+              snippet:
+                  "${newSpot.city}\nNiveau: ${newSpot.level} | Difficulté: ${newSpot.difficulty}\n${newSpot.description}",
+            ),
+            onTap: () {
+              setState(() {
+                _selectedSpot = newSpot;
+                _selectedSpotTitle = newSpot.name;
+                _selectedSpotCity = newSpot.city;
+                _selectedSpotLevel = newSpot.level;
+                _selectedSpotDifficulty = newSpot.difficulty;
+                _selectedSpotDescription = newSpot.description;
+                _isAddingSpot = false;
+              });
+              _panelController.open();
+            },
+          ),
+        );
+        // Réinitialise la sélection temporaire
+        _pickedLocation = null;
+        _isAddingSpot = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Spot ajouté !')));
+      _panelController.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Veuillez remplir tous les champs et choisir un point sur la carte',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -268,6 +324,7 @@ class MapPageState extends State<MapPage> {
                       setState(() => _selectedNiveau = val),
                   onDifficulteChanged: (val) =>
                       setState(() => _selectedDifficulte = val),
+                  onValidate: _validateAndAddSpot, // AJOUTE CE CALLBACK
                 )
               : buildSpotDetailsPanel(),
         ),
