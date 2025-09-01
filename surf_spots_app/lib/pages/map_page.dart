@@ -53,6 +53,11 @@ class MapPageState extends State<MapPage> {
   int? _selectedNiveau;
   int? _selectedDifficulte;
 
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _villeController = TextEditingController();
+  final TextEditingController _spotController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -246,7 +251,11 @@ class MapPageState extends State<MapPage> {
           padding: const EdgeInsets.all(16.0),
           child: _isAddingSpot
               ? ContainerForms(
+                  formKey: _formKey,
                   gpsController: _gpsController,
+                  villeController: _villeController,
+                  spotController: _spotController,
+                  descriptionController: _descriptionController,
                   onPickLocation: () {
                     setState(() {
                       _isPickingLocation = true;
