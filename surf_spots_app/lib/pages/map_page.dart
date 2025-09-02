@@ -29,6 +29,8 @@ class MapPageState extends State<MapPage> {
 
   SurfSpot? _selectedSpot;
 
+  bool _nouveauMarker = false;
+
   // Variables panel
   bool _isPanelOpen = false;
   bool _isAddingSpot = false;
@@ -108,14 +110,14 @@ class MapPageState extends State<MapPage> {
         // Drag handle
         Padding(
           padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-          child: Container(
-            width: 40,
-            height: 5,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+          // child: Container(
+          //   width: 40,
+          //   height: 5,
+          //   decoration: BoxDecoration(
+          //     color: Colors.grey[300],
+          //     borderRadius: BorderRadius.circular(12),
+          //   ),
+          // ),
         ),
         // Header
         Row(
@@ -342,33 +344,56 @@ class MapPageState extends State<MapPage> {
         },
         onPanelOpened: () => widget.onPanelStateChanged?.call(true),
         onPanelClosed: () => widget.onPanelStateChanged?.call(false),
-        panel: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _isAddingSpot
-              ? ContainerForms(
-                  formKey: _formKey,
-                  gpsController: _gpsController,
-                  villeController: _villeController,
-                  spotController: _spotController,
-                  descriptionController: _descriptionController,
-                  onPickLocation: () {
-                    setState(() {
-                      _isPickingLocation = true;
-                      _panelController.close();
-                    });
-                  },
-                  selectedNiveau: _selectedNiveau,
-                  selectedDifficulte: _selectedDifficulte,
-                  onNiveauChanged: (val) =>
-                      setState(() => _selectedNiveau = val),
-                  onDifficulteChanged: (val) =>
-                      setState(() => _selectedDifficulte = val),
-                  onValidate: _validateAndAddSpot,
-                  images: _images, // AJOUTE CET ARGUMENT
-                  onAddImage: _pickImages, // AJOUTE CET ARGUMENT
-                  onRemoveImage: _removeImage, // AJOUTE CET ARGUMENT
-                )
-              : buildSpotDetailsPanel(),
+        panel: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0, bottom: 16.0),
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: _isAddingSpot
+                  ? ContainerForms(
+                      formKey: _formKey,
+                      gpsController: _gpsController,
+                      villeController: _villeController,
+                      spotController: _spotController,
+                      descriptionController: _descriptionController,
+                      onPickLocation: () {
+                        setState(() {
+                          _markers.removeWhere(
+                            (marker) => marker.markerId == MarkerId('picked'),
+                          );
+                          _pickedLocation = null;
+                          _isPickingLocation = true;
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            _panelController.close();
+                          });
+                        });
+                      },
+                      selectedNiveau: _selectedNiveau,
+                      selectedDifficulte: _selectedDifficulte,
+                      onNiveauChanged: (val) =>
+                          setState(() => _selectedNiveau = val),
+                      onDifficulteChanged: (val) =>
+                          setState(() => _selectedDifficulte = val),
+                      onValidate: _validateAndAddSpot,
+                      images: _images, // AJOUTE CET ARGUMENT
+                      onAddImage: _pickImages, // AJOUTE CET ARGUMENT
+                      onRemoveImage: _removeImage, // AJOUTE CET ARGUMENT
+                    )
+                  : buildSpotDetailsPanel(),
+            ),
+          ],
         ),
         body: GoogleMap(
           initialCameraPosition: _initialCameraPosition,
@@ -383,21 +408,28 @@ class MapPageState extends State<MapPage> {
                 ),
               ),
           },
-          onTap: (LatLng pos) {
-            setState(() {
-              _pickedLocation = pos;
-              _gpsController.text = "${pos.latitude}, ${pos.longitude}";
-              if (_panelController.isPanelOpen) {
-                _panelController.close();
-              }
-            });
-          },
+          onTap: _isPickingLocation
+              ? (LatLng pos) {
+                  setState(() {
+                    _pickedLocation = pos;
+                    _gpsController.text = "${pos.latitude}, ${pos.longitude}";
+                    _isPickingLocation =
+                        false; // Désactive le mode après sélection
+                    _nouveauMarker = true;
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      if (_panelController.isPanelClosed) {
+                        _panelController.open();
+                      }
+                    });
+                  });
+                }
+              : null,
         ),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24.0),
           topRight: Radius.circular(24.0),
         ),
-        minHeight: 0,
+        minHeight: 50,
         maxHeight: MediaQuery.of(context).size.height * 0.5,
       ),
     );

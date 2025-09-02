@@ -61,6 +61,7 @@ class ContainerForms extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Padding(padding: const EdgeInsets.only(top: 8.0, bottom: 16.0)),
               const Center(
                 child: Text(
                   'Ajout spot de surf',
@@ -71,11 +72,7 @@ class ContainerForms extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Ville',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              const SizedBox(height: 14),
               CustomInputField(
                 controller: villeController,
                 label: 'Ville',
@@ -84,11 +81,7 @@ class ContainerForms extends StatelessWidget {
                     ? 'Ce champ est requis'
                     : null,
               ),
-              const SizedBox(height: 4),
-              const Text(
-                'Nom du spot',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              const SizedBox(height: 14),
               CustomInputField(
                 controller: spotController,
                 label: 'Nom du spot',
@@ -97,11 +90,7 @@ class ContainerForms extends StatelessWidget {
                     ? 'Ce champ est requis'
                     : null,
               ),
-              const SizedBox(height: 4),
-              const Text(
-                'Description',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              const SizedBox(height: 14),
               CustomInputField(
                 controller: descriptionController,
                 label: 'Description',
@@ -110,7 +99,7 @@ class ContainerForms extends StatelessWidget {
                     ? 'Ce champ est requis'
                     : null,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
               const Text(
                 'Niveau',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -196,21 +185,36 @@ class ContainerForms extends StatelessWidget {
                   ),
                 ),
               const SizedBox(height: 4),
-              const Text(
-                'Point GPS',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
               GestureDetector(
                 onTap: onPickLocation,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.near_me_rounded, color: Colors.blue, size: 28),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.near_me_rounded,
+                          color: Colors.blue,
+                          size: 28,
+                        ),
+                        ElevatedButton(
+                          onPressed: onPickLocation,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                          ),
+                          child: const Text(
+                            'Ajouter marqueur sur la carte',
+                            style: TextStyle(fontSize: 15, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
                     CustomInputField(
                       controller: gpsController,
                       label: 'Point GPS',
                       keyboardType: TextInputType.text,
+                      enabled: false, // Désactivé
                       validator: (value) => value == null || value.isEmpty
                           ? 'Ce champ est requis'
                           : null,
@@ -218,7 +222,7 @@ class ContainerForms extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               const Text(
                 'Photo',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -337,34 +341,6 @@ class ContainerForms extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class CustomInputField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final TextInputType keyboardType;
-  final String? Function(String?)? validator;
-
-  const CustomInputField({
-    super.key,
-    required this.controller,
-    required this.label,
-    required this.keyboardType,
-    this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
-      ),
-      validator: validator,
     );
   }
 }

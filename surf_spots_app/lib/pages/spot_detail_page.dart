@@ -179,14 +179,14 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                // child: Container(
+                //   width: 40,
+                //   height: 5,
+                //   decoration: BoxDecoration(
+                //     color: Colors.grey[300],
+                //     borderRadius: BorderRadius.circular(12),
+                //   ),
+                // ),
               ),
               Row(
                 children: [
