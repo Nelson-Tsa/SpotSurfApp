@@ -190,23 +190,27 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
               ),
               Row(
                 children: [
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        "Détails du spot",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.blue),
                     onPressed: () {
                       Navigator.pop(context);
                     },
                   ),
+                  Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 50.0), // Décale de 50 pixels vers la droite
+                        child: Text(
+                          "Détails du spot",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
                 ],
               ),
               const SizedBox(height: 8),
