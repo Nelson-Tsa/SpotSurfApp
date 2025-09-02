@@ -53,6 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      // Si on quitte la carte, on ferme le panel
+      if (index != 2 && _isMapPanelOpen) {
+        _isMapPanelOpen = false;
+      }
     });
   }
 
@@ -166,7 +170,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
       ),
       // Bouton flottant pour ajouter un spot sur la map
-      floatingActionButton:  (_selectedIndex == 2 && _isMapPanelOpen) || _selectedIndex == 4
+      floatingActionButton:
+          (_selectedIndex == 2 && _isMapPanelOpen) || _selectedIndex == 4
           ? null
           : FloatingActionButton(
               onPressed: () {
