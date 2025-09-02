@@ -105,125 +105,130 @@ class MapPageState extends State<MapPage> {
   }
 
   Widget buildSpotDetailsPanel() {
-    return Column(
-      children: [
-        // Drag handle
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-          // child: Container(
-          //   width: 40,
-          //   height: 5,
-          //   decoration: BoxDecoration(
-          //     color: Colors.grey[300],
-          //     borderRadius: BorderRadius.circular(12),
-          //   ),
-          // ),
-        ),
-        // Header
-        Row(
-          children: [
-            const Expanded(
-              child: Center(
-                child: Text(
-                  "Informations sur le spot",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            if (_selectedSpot != null)
-              IconButton(
-                icon: Icon(
-                  _selectedSpot!.isLiked ?? false
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color: Colors.blue,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _selectedSpot!.isLiked = !(_selectedSpot!.isLiked ?? false);
-                  });
-                },
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            // child: Container(
+            //   width: 40,
+            //   height: 5,
+            //   decoration: BoxDecoration(
+            //     color: Colors.grey[300],
+            //     borderRadius: BorderRadius.circular(12),
+            //   ),
+            // ),
+          ),
+          // Header
+          Row(
             children: [
-              Text(
-                _selectedSpotTitle,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    "Informations sur le spot",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.near_me_rounded,
-                    size: 18,
+              if (_selectedSpot != null)
+                IconButton(
+                  icon: Icon(
+                    _selectedSpot!.isLiked ?? false
+                        ? Icons.favorite
+                        : Icons.favorite_border,
                     color: Colors.blue,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _selectedSpotCity,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                _selectedSpotDescription,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Photo :",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              _selectedSpot != null && _selectedSpot!.imageUrls.isNotEmpty
-                  ? buildSpotImage(_selectedSpot!.imageUrls[0])
-                  : const SizedBox.shrink(),
+                  onPressed: () {
+                    setState(() {
+                      _selectedSpot!.isLiked =
+                          !(_selectedSpot!.isLiked ?? false);
+                    });
+                  },
+                ),
             ],
           ),
-        ),
-        // Footer : likes + bouton détails
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            if (_selectedSpot != null)
-              Row(
-                children: [
-                  const Icon(Icons.favorite, color: Colors.blue, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    "${_selectedSpot!.isLiked == true ? '1' : '0'} like${_selectedSpot!.isLiked == true ? '' : 's'}",
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+          const SizedBox(height: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _selectedSpotTitle,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-            ElevatedButton(
-              onPressed: () {
-                if (_selectedSpot != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          SpotDetailPage(spot: _selectedSpot!),
+                ),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.near_me_rounded,
+                      size: 18,
+                      color: Colors.blue,
                     ),
-                  );
-                }
-              },
-              child: const Text("Détails"),
+                    const SizedBox(width: 4),
+                    Text(
+                      _selectedSpotCity,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  _selectedSpotDescription,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Photo :",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 15),
+                _selectedSpot != null && _selectedSpot!.imageUrls.isNotEmpty
+                    ? buildSpotImage(_selectedSpot!.imageUrls[0])
+                    : const SizedBox.shrink(),
+              ],
             ),
-          ],
-        ),
-      ],
+          ),
+          // Footer : likes + bouton détails
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (_selectedSpot != null)
+                Row(
+                  children: [
+                    const Icon(Icons.favorite, color: Colors.blue, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${_selectedSpot!.isLiked == true ? '1' : '0'} like${_selectedSpot!.isLiked == true ? '' : 's'}",
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ElevatedButton(
+                onPressed: () {
+                  if (_selectedSpot != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SpotDetailPage(spot: _selectedSpot!),
+                      ),
+                    );
+                  }
+                },
+                child: const Text("Détails"),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
