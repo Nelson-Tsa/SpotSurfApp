@@ -16,7 +16,7 @@ func InitDB(url string) *gorm.DB {
 	}
 
 	// Auto-migrate the models
-	err = db.AutoMigrate(&model.Spots{}, &model.Users{}, &model.Likes{}, &model.Visited{})
+	err = db.AutoMigrate(&model.Users{}, &model.Spots{}, &model.Images{}, &model.Likes{}, &model.Visited{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
