@@ -1,7 +1,21 @@
 package spot
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"surf_spots_app/model"
+
+	"github.com/gin-gonic/gin"
+)
 
 func (h *SpotHandler) GetAllSpots(ctx *gin.Context) {
-	// Implementation for get spot
+	var spots []model.Spots
+
+	// Charge les spots ET leurs images associées
+	if err := h.DB.Preload("Images").Find(&spots).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, spots)
 }

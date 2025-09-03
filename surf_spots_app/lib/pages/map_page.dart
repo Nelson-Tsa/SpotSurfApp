@@ -90,7 +90,7 @@ class MapPageState extends State<MapPage> {
               difficulty: 2,
               description:
                   'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.',
-              imageUrls: [
+              imageBase64: [
                 'assets/images/teahupoo.jpg',
                 'assets/images/teahupoo2.jpg',
                 'assets/images/teahupoo3.jpg',
@@ -190,8 +190,8 @@ class MapPageState extends State<MapPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 15),
-                _selectedSpot != null && _selectedSpot!.imageUrls.isNotEmpty
-                    ? buildSpotImage(_selectedSpot!.imageUrls[0])
+                _selectedSpot != null && _selectedSpot!.imageBase64.isNotEmpty
+                    ? buildSpotImage(_selectedSpot!.imageBase64[0])
                     : const SizedBox.shrink(),
               ],
             ),
@@ -247,7 +247,7 @@ class MapPageState extends State<MapPage> {
         description: _descriptionController.text,
         level: _selectedNiveau ?? 1,
         difficulty: _selectedDifficulte ?? 1,
-        imageUrls: _images.map((img) => img.path).toList(),
+        imageBase64: [], // Tu peux laisser vide ici, car tu n’as pas encore les images en base64
         isLiked: false,
       );
 

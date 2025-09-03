@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/widgets/spot_card.dart';
+import 'package:http/http.dart' as http;
 import 'package:surf_spots_app/constants/colors.dart';
 
 class Carroussel extends StatefulWidget {
@@ -17,61 +19,19 @@ class _CarrousselState extends State<Carroussel> {
   late Timer _timer;
   int _currentPage = 0;
 
-  // 1. Créer une liste de données de substitution (plus tard, cela viendra de la base de données)
-  final List<SurfSpot> _spots = [
-    SurfSpot(
-      name: 'La Gravière',
-      city: 'Hossegor, France',
-      level: 2,
-      difficulty: 2,
-      description: 'Hossegor, France',
-      imageUrls: ['assets/images/la_graviere.jpg'],
-    ),
-    SurfSpot(
-      name: 'Pipeline',
-      city: 'Oahu, Hawaï',
-      level: 2,
-      difficulty: 2,
-      description: 'Oahu, Hawaï',
-      imageUrls: ['assets/images/pipeline.jpg'],
-    ),
-    SurfSpot(
-      name: 'Uluwatu',
-      city: 'Bali, Indonésie',
-      level: 2,
-      difficulty: 2,
-      description: 'Bali, Indonésie',
-      imageUrls: ['assets/images/uluwatu.jpg'],
-    ),
-    SurfSpot(
-      name: 'Jeffreys Bay',
-      city: 'Afrique du Sud',
-      level: 2,
-      difficulty: 2,
-      description: 'Afrique du Sud',
-      imageUrls: ['assets/images/jeffreys_bay.jpg'],
-    ),
-    SurfSpot(
-      name: 'Teahupo\'o',
-      city: 'Tahiti, Polynésie',
-      level: 2,
-      difficulty: 2,
-      description: 'Tahiti, Polynésie',
-      imageUrls: ['assets/images/teahupoo.jpg'],
-    ),
-  ];
-
+  List<SurfSpot> _spots = [];
   late int _totalPages;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _totalPages = (_spots.length / 2).ceil();
     _pageController = PageController(viewportFraction: 0.85);
+    fetchSpots();
 
     // Démarrer le Timer pour le défilement automatique
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (_pageController.hasClients) {
+      if (_pageController.hasClients && _totalPages > 0) {
         _currentPage = (_currentPage + 1) % _totalPages;
         _pageController.animateToPage(
           _currentPage,
@@ -82,9 +42,46 @@ class _CarrousselState extends State<Carroussel> {
     });
   }
 
+  Future<void> fetchSpots() async {
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:4000/api/spot/spots'),
+    );
+    print('Status code: ${response.statusCode}');
+    print('Body: ${response.body}');
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        _spots = data
+            .map(
+              (json) => SurfSpot(
+                name: json['name'],
+                city: json['city'],
+                level: int.tryParse(json['level'].toString()) ?? 1,
+                difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
+                description: json['description'],
+                imageBase64: json['images'] != null
+                    ? (json['images'] as List)
+                          .map((img) => img['image_data'] ?? '')
+                          .where((img) => img != '')
+                          .cast<String>()
+                          .toList()
+                    : [],
+              ),
+            )
+            .toList();
+        _totalPages = (_spots.length / 2).ceil();
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+        _totalPages = 0;
+      });
+    }
+  }
+
   @override
   void dispose() {
-    // 3. Il est crucial de libérer les ressources dans dispose.
     _timer.cancel();
     _pageController.dispose();
     super.dispose();
@@ -92,16 +89,16 @@ class _CarrousselState extends State<Carroussel> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. On enveloppe la Column existante dans un Container
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_spots.isEmpty) {
+      return const Center(child: Text('Aucun spot disponible.'));
+    }
     return Container(
-      // 2. On ajoute des marges pour décoller le conteneur des autres éléments
       margin: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 12.0),
-      // 3. On utilise la propriété 'decoration' pour le style
       decoration: BoxDecoration(
-        // Couleur de fond semi-transparente.
-        // Vous pouvez jouer avec la valeur de withOpacity (de 0.0 à 1.0)
         color: Colors.white.withAlpha(200),
-        // Bords arrondis pour un look plus doux
         borderRadius: BorderRadius.circular(15.0),
       ),
       child: Column(
@@ -116,7 +113,7 @@ class _CarrousselState extends State<Carroussel> {
             ),
           ),
           SizedBox(
-            height: 150, // Hauteur fixe pour le carrousel
+            height: 180,
             child: PageView.builder(
               controller: _pageController,
               itemCount: _totalPages,
@@ -132,14 +129,14 @@ class _CarrousselState extends State<Carroussel> {
                     if (itemIndex >= _spots.length) {
                       return Expanded(child: Container());
                     }
-                    // 2. Récupérer le bon spot de la liste
                     final spot = _spots[itemIndex];
 
                     return Expanded(
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 10.0),
-                        // 3. Utiliser le nouveau widget SpotCard
-                        child: SpotCard(spot: spot, showLike: false),
+                        child: Column(
+                          children: [SpotCard(spot: spot, showLike: false)],
+                        ),
                       ),
                     );
                   }),
