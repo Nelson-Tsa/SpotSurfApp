@@ -1,60 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/widgets/spot_card.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-class GalleryPage extends StatelessWidget {
+class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<SurfSpot> spots = [
-      SurfSpot(
-        name: 'La Gravière',
-        city: 'Hossegor, France',
-        level: 2,
-        difficulty: 2,
-        description: 'Hossegor, France',
-        imageUrls: ['assets/images/la_graviere.jpg'],
-      ),
-      SurfSpot(
-        name: 'Pipeline',
-        city: 'Oahu, Hawaï',
-        level: 2,
-        difficulty: 2,
-        description: 'Oahu, Hawaï',
-        imageUrls: ['assets/images/pipeline.jpg'],
-      ),
-      SurfSpot(
-        name: 'Uluwatu',
-        city: 'Bali, Indonésie',
-        level: 2,
-        difficulty: 2,
-        description: 'Bali, Indonésie',
-        imageUrls: ['assets/images/uluwatu.jpg'],
-      ),
-      SurfSpot(
-        name: 'Jeffreys Bay',
-        city: 'Afrique du Sud',
-        level: 2,
-        difficulty: 2,
-        description: 'Afrique du Sud',
-        imageUrls: ['assets/images/jeffreys_bay.jpg'],
-      ),
-      SurfSpot(
-        name: 'Teahupo\'o',
-        city: 'Tahiti, Polynésie',
-        level: 2,
-        difficulty: 2,
-        description: 'Tahiti, Polynésie',
-        imageUrls: ['assets/images/teahupoo.jpg'],
-      ),
-    ];
+  State<GalleryPage> createState() => _GalleryPageState();
+}
 
+class _GalleryPageState extends State<GalleryPage> {
+  List<SurfSpot> spots = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchSpots();
+  }
+
+  Future<void> fetchSpots() async {
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:4000/api/spot/spots'),
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        spots = data
+            .map(
+              (json) => SurfSpot(
+                name: json['name'],
+                city: json['city'],
+                level: int.tryParse(json['level'].toString()) ?? 1,
+                difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
+                description: json['description'],
+                imageUrls: [], // À remplir plus tard avec les images
+              ),
+            )
+            .toList();
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 12.0),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(200), // semi-transparent
-        borderRadius: BorderRadius.circular(15.0), // arrondis
+        color: Colors.white.withAlpha(200),
+        borderRadius: BorderRadius.circular(15.0),
       ),
       child: GridView.builder(
         padding: const EdgeInsets.all(10),
