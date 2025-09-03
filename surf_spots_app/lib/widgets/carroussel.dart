@@ -59,9 +59,12 @@ class _CarrousselState extends State<Carroussel> {
                 level: int.tryParse(json['level'].toString()) ?? 1,
                 difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
                 description: json['description'],
-                imageUrls:
-                    json['image'] != null && json['image'].toString().isNotEmpty
-                    ? [json['image'].toString()]
+                imageBase64: json['images'] != null
+                    ? (json['images'] as List)
+                          .map((img) => img['image_data'] ?? '')
+                          .where((img) => img != '')
+                          .cast<String>()
+                          .toList()
                     : [],
               ),
             )
@@ -132,37 +135,7 @@ class _CarrousselState extends State<Carroussel> {
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: Column(
-                          children: [
-                            if (spot.imageUrls.isNotEmpty)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: spot.imageUrls.first.startsWith('http')
-                                    ? Image.network(
-                                        spot.imageUrls.first,
-                                        height: 80,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.asset(
-                                        spot.imageUrls.first,
-                                        height: 80,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                              )
-                            else
-                              Container(
-                                height: 80,
-                                color: Colors.grey[300],
-                                child: const Center(
-                                  child: Icon(Icons.image_not_supported),
-                                ),
-                              ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: SpotCard(spot: spot, showLike: false),
-                            ),
-                          ],
+                          children: [SpotCard(spot: spot, showLike: false)],
                         ),
                       ),
                     );

@@ -36,7 +36,13 @@ class _GalleryPageState extends State<GalleryPage> {
                 level: int.tryParse(json['level'].toString()) ?? 1,
                 difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
                 description: json['description'],
-                imageUrls: [], // À remplir plus tard avec les images
+                imageBase64: json['images'] != null
+                    ? (json['images'] as List)
+                          .map((img) => img['image_data'] ?? '')
+                          .where((img) => img != '')
+                          .cast<String>()
+                          .toList()
+                    : [],
               ),
             )
             .toList();

@@ -11,8 +11,8 @@ import (
 func (h *SpotHandler) GetAllSpots(ctx *gin.Context) {
 	var spots []model.Spots
 
-	// Récupère tous les spots depuis la BDD
-	if err := h.DB.Find(&spots).Error; err != nil {
+	// Charge les spots ET leurs images associées
+	if err := h.DB.Preload("Images").Find(&spots).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
