@@ -27,6 +27,9 @@ func main() {
 		})
 	})
 
+
+
+
 	// Routes
 	user.UserRoutes(r, db)
 	spot.SpotRoutes(r, db)
