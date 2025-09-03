@@ -8,7 +8,6 @@ type Spots struct {
 	Level       string `gorm:"not null" json:"level"`
 	Difficulty  string `gorm:"not null" json:"difficulty"`
 	Gps         string `gorm:"not null" json:"gps"`
-	ImageID     *int   `gorm:"default:null" json:"image_id"` // Nullable avec pointeur
 	UserID      int    `gorm:"not null" json:"user_id"`
 	LikeCount   int    `gorm:"default:0" json:"like_count"`
 
