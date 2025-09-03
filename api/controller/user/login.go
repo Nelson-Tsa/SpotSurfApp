@@ -34,7 +34,7 @@ func (h *UserHandler) LoginUsers(ctx *gin.Context) {
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data["password"])); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
 		ctx.JSON(401, gin.H{"error": "Invalid password"})
 		return
 	}
@@ -60,6 +60,7 @@ func (h *UserHandler) LoginUsers(ctx *gin.Context) {
 func setAuthCookie(token string) *http.Cookie {
 	return &http.Cookie{
 		Name:     "surf-spot-token",
+		Path:     "/",
 		Value:    token,
 		Expires:  time.Now().Add(time.Hour * 24 * 7), // 7 days
 		HttpOnly: true,

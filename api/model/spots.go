@@ -13,7 +13,6 @@ type Spots struct {
 
 	// Relations
 	User    *Users    `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	Image   *Images   `gorm:"foreignKey:ImageID" json:"image,omitempty"`
 	Images  []Images  `gorm:"foreignKey:SpotID" json:"images,omitempty"` // Toutes les images du spot
 	Likes   []Likes   `gorm:"foreignKey:SpotID" json:"likes,omitempty"`
 	Visited []Visited `gorm:"foreignKey:SpotID" json:"visited,omitempty"`
