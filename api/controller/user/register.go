@@ -12,12 +12,17 @@ func (h *UserHandler) RegisterUsers(ctx *gin.Context) {
 
 	var data map[string]string
 
-	if ctx.Bind(&data) != nil {
+	if ctx.BindJSON(&data) != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read body",
 		})
 		return
 	}
+
+	if data["email"] == "" || data["password"] == "" || data["name"] == "" {
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing required fields"})
+        return
+    }
 
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(data["password"]), 14)
@@ -32,7 +37,7 @@ func (h *UserHandler) RegisterUsers(ctx *gin.Context) {
 	user := model.Users{
 		Name: data["name"], 
 		Email: data["email"], 
-		Password: string(hash), 
+		Password: hash, 
 		Role: data["role"],
 	}
 
@@ -42,7 +47,6 @@ func (h *UserHandler) RegisterUsers(ctx *gin.Context) {
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to create user",
-			"details": result.Error.Error(), // Ajoute le détail de l'erreur
 		})
 		return
 	}
