@@ -32,13 +32,18 @@ func (h *UserHandler) RegisterUsers(ctx *gin.Context) {
 		})
 		return
 	}
+
+	role := data["role"]
+	if role == ""{
+		role = "user"
+	}
 	
 
 	user := model.Users{
 		Name: data["name"], 
 		Email: data["email"], 
 		Password: hash, 
-		Role: data["role"],
+		Role: role,
 	}
 
 	

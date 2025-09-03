@@ -8,11 +8,14 @@ type Spots struct {
 	Level       string `gorm:"not null" json:"level"`
 	Difficulty  string `gorm:"not null" json:"difficulty"`
 	Gps         string `gorm:"not null" json:"gps"`
-	Image       []byte `gorm:"type:bytea;not null" json:"image"`
+	ImageID     *int   `gorm:"default:null" json:"image_id"` // Nullable avec pointeur
 	UserID      int    `gorm:"not null" json:"user_id"`
-	LikeCount   int    `gorm:"not null" json:"like_count"`
+	LikeCount   int    `gorm:"default:0" json:"like_count"`
 
-	User    *Users    `gorm:"foreignKey:UserID" json:"user"`
-	Likes   []Likes   `gorm:"foreignKey:SpotID" json:"likes"`
-	Visited []Visited `gorm:"foreignKey:SpotID" json:"visited"`
+	// Relations
+	User    *Users    `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Image   *Images   `gorm:"foreignKey:ImageID" json:"image,omitempty"`
+	Images  []Images  `gorm:"foreignKey:SpotID" json:"images,omitempty"` // Toutes les images du spot
+	Likes   []Likes   `gorm:"foreignKey:SpotID" json:"likes,omitempty"`
+	Visited []Visited `gorm:"foreignKey:SpotID" json:"visited,omitempty"`
 }
