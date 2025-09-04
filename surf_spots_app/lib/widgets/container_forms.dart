@@ -22,6 +22,8 @@ class ContainerForms extends StatelessWidget {
   final VoidCallback onAddImage;
   final void Function(XFile) onRemoveImage;
 
+  final bool isSubmitting; // Ajoute ce paramètre
+
   const ContainerForms({
     super.key,
     required this.formKey,
@@ -38,6 +40,7 @@ class ContainerForms extends StatelessWidget {
     required this.images,
     required this.onAddImage,
     required this.onRemoveImage,
+    required this.isSubmitting, // Ajoute ce paramètre
   });
 
   @override
@@ -323,17 +326,26 @@ class ContainerForms extends StatelessWidget {
                   width: 150,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: onValidate, // UTILISE LE CALLBACK ICI
+                    onPressed: isSubmitting ? null : onValidate,
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(999),
                       ),
                       backgroundColor: const Color(0xFF1A73E8),
                     ),
-                    child: const Text(
-                      'Valider',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                        : const Text(
+                            'Valider',
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
                   ),
                 ),
               ),

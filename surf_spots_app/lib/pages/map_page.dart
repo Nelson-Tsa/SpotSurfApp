@@ -36,6 +36,7 @@ class MapPageState extends State<MapPage> {
   // Variables panel
   bool _isPanelOpen = false;
   bool _isAddingSpot = false;
+  bool _isSubmitting = false;
   void openAddSpotPanel() {
     setState(() {
       _isAddingSpot = true;
@@ -65,6 +66,8 @@ class MapPageState extends State<MapPage> {
   final TextEditingController _descriptionController = TextEditingController();
 
   List<XFile> _images = [];
+
+  Key _mapKey = UniqueKey();
 
   @override
   void initState() {
@@ -159,6 +162,7 @@ class MapPageState extends State<MapPage> {
             }
           }
         }
+        // _mapKey = UniqueKey(); // Retire cette ligne ici
       });
     }
   }
@@ -294,11 +298,20 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _validateAndAddSpot() async {
+    if (_isSubmitting) return; // Empêche les doubles clics
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
     if (_formKey.currentState!.validate() &&
         _selectedNiveau != null &&
         _selectedDifficulte != null &&
         _images.isNotEmpty &&
         _pickedLocation != null) {
+      setState(() {
+        _isSubmitting = true;
+      });
       // 1. Envoie le spot au backend
       final spotResponse = await http.post(
         Uri.parse('http://10.0.2.2:4000/api/spot/create'),
@@ -333,11 +346,28 @@ class MapPageState extends State<MapPage> {
         // Recharge les markers depuis la BDD
         await fetchSpotsAndMarkers();
 
+        setState(() {
+          _pickedLocation = null; // Supprime le marker bleu
+          _nouveauMarker = false;
+          // Réinitialise la sélection du spot
+          _selectedSpot = null;
+          _selectedSpotTitle = "Aucun spot sélectionné";
+          _selectedSpotDescription =
+              "Cliquez sur un marqueur pour voir les détails ici.";
+          _selectedSpotCity = "";
+          _selectedSpotLevel = 0;
+          _selectedSpotDifficulty = 0;
+          _isSubmitting = false;
+        });
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Spot ajouté !')));
         _panelController.close();
       } else {
+        setState(() {
+          _isSubmitting = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Erreur lors de l\'ajout du spot')),
         );
@@ -439,6 +469,7 @@ class MapPageState extends State<MapPage> {
                       villeController: _villeController,
                       spotController: _spotController,
                       descriptionController: _descriptionController,
+                      isSubmitting: _isSubmitting,
                       onPickLocation: () {
                         setState(() {
                           _markers.removeWhere(
@@ -467,6 +498,7 @@ class MapPageState extends State<MapPage> {
           ],
         ),
         body: GoogleMap(
+          key: _mapKey, // Ajoute la clé ici
           initialCameraPosition: _initialCameraPosition,
           markers: {
             ..._markers,
