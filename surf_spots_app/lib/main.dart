@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/pages/explore_page.dart';
 import 'package:surf_spots_app/pages/favoris_page.dart';
+import 'package:surf_spots_app/pages/profile_page.dart';
 import 'package:surf_spots_app/routes.dart';
 import 'package:surf_spots_app/widgets/navbar.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
@@ -9,6 +10,8 @@ import 'package:surf_spots_app/widgets/grid.dart';
 import 'package:surf_spots_app/pages/map_page.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:surf_spots_app/services/auth_service.dart';
+import 'package:surf_spots_app/auth/login_page.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -43,6 +46,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  Key _profileKey = UniqueKey(); // Clé pour forcer le rebuild
 
   // Variable pour tracker si le panel de la carte est ouvert
   bool _isMapPanelOpen = false;
@@ -53,6 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      // Si on va sur l'onglet Profile, on renouvelle la clé pour forcer le rebuild
+      if (index == 4) {
+        _profileKey = UniqueKey();
+      }
       // Si on quitte la carte, on ferme le panel
       if (index != 2 && _isMapPanelOpen) {
         _isMapPanelOpen = false;
@@ -88,64 +96,29 @@ class _HomeScreenState extends State<HomeScreen> {
       const ExplorePage(),
       MapPage(key: _mapPageKey, onPanelStateChanged: _onMapPanelStateChanged),
       const FavorisPage(),
-      Center(
-        // Page Profile / Connexion
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: Colors.black,
-                maximumSize: const Size(350, 60),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
+      // Page Profile conditionnelle
+      FutureBuilder<bool>(
+        key: _profileKey, // Clé pour forcer le rebuild
+        future: AuthService.isLoggedIn(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final isLoggedIn = snapshot.data ?? false;
+
+          if (isLoggedIn) {
+            return const ProfilePage();
+          } else {
+            return LoginPage(
+              onLoginSuccess: () {
+                setState(() {
+                  _profileKey = UniqueKey(); // Forcer le rebuild
+                });
               },
-              child: const Text(
-                'Se connecter',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: Colors.black,
-                minimumSize: const Size(170, 30),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text(
-                'S\'inscrire',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
+            );
+          }
+        },
       ),
     ];
 

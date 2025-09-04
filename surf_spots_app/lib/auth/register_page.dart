@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:surf_spots_app/services/auth_service.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
-import '../services/auth_service.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 
 class RegisterPage extends StatefulWidget {
