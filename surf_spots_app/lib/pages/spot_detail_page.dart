@@ -3,6 +3,9 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/services.dart'; // Pour Navigator.pop si besoin
+import 'package:provider/provider.dart';
+import 'package:surf_spots_app/providers/user_provider.dart';
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -156,6 +159,8 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = Provider.of<UserProvider>(context).currentUser;
+
     return Scaffold(
       body: SlidingUpPanel(
         panel: Padding(
@@ -286,6 +291,48 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                               color: Colors.grey,
                             ),
                           ),
+                          // Ajout du bouton supprimer
+                          if (currentUser != null &&
+                              (currentUser.role == 'admin' ||
+                                  currentUser.id == _spot.userId))
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text(
+                                      'Confirmer la suppression',
+                                    ),
+                                    content: const Text(
+                                      'Voulez-vous vraiment supprimer ce spot ?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text('Annuler'),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                      ),
+                                      TextButton(
+                                        child: const Text(
+                                          'Supprimer',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  // Appelle ta logique de suppression ici
+                                  // await deleteSpot(_spot.id);
+                                  Navigator.of(
+                                    context,
+                                  ).pop(); // Retour à la liste
+                                }
+                              },
+                            ),
                         ],
                       ),
                     ],

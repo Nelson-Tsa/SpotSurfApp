@@ -90,6 +90,7 @@ class MapPageState extends State<MapPage> {
             _selectedSpotDescription =
                 'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.';
             _selectedSpot = SurfSpot(
+              id: 'teahupoo', // Ajoute un id unique
               name: 'Teahupoo Wave',
               city: 'Tahiti, Polynésie',
               level: 1,
@@ -101,6 +102,7 @@ class MapPageState extends State<MapPage> {
                 'assets/images/teahupoo2.jpg',
                 'assets/images/teahupoo3.jpg',
               ],
+              userId: '1', // ou l’id du créateur/admin
               isLiked: false,
             );
           });
@@ -126,12 +128,12 @@ class MapPageState extends State<MapPage> {
             final lon = double.tryParse(parts[1].trim());
             if (lat != null && lon != null) {
               final spot = SurfSpot(
+                id: jsonSpot['id'].toString(), // Ajoute l'id
                 name: jsonSpot['name'],
                 city: jsonSpot['city'],
                 description: jsonSpot['description'],
                 level: int.tryParse(jsonSpot['level'].toString()) ?? 1,
-                difficulty:
-                    int.tryParse(jsonSpot['difficulty'].toString()) ?? 1,
+                difficulty: int.tryParse(jsonSpot['difficulty'].toString()) ?? 1,
                 imageBase64: jsonSpot['images'] != null
                     ? (jsonSpot['images'] as List)
                           .map((img) => img['image_data'] ?? '')
@@ -139,6 +141,7 @@ class MapPageState extends State<MapPage> {
                           .cast<String>()
                           .toList()
                     : [],
+                userId: jsonSpot['user_id'].toString(), // Ajoute le userId
               );
               _markers.add(
                 Marker(
