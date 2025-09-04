@@ -1,10 +1,69 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
+import '../services/auth_service.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRegister() async {
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      _showMessage('Veuillez remplir tous les champs', isError: true);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await AuthService.registerUser(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success']) {
+      _showMessage('Inscription réussie !');
+      // Optionnel : rediriger vers la page de connexion
+      Navigator.pushNamed(context, '/login');
+    } else {
+      _showMessage(result['error'], isError: true);
+    }
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,18 +105,22 @@ class RegisterPage extends StatelessWidget {
                     CustomInputField(
                       label: 'Name',
                       keyboardType: TextInputType.name,
+                      controller: _nameController,
                     ),
                     CustomInputField(
                       label: 'Email',
                       keyboardType: TextInputType.emailAddress,
+                      controller: _emailController,
                     ),
-                    CustomInputField(label: 'Password', obscureText: true),
+                    CustomInputField(
+                      label: 'Password',
+                      obscureText: true,
+                      controller: _passwordController,
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Handle registration logic here
-                        },
+                        onPressed: _isLoading ? null : _handleRegister,
                         style: ElevatedButton.styleFrom(
                           minimumSize: Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
@@ -65,10 +128,22 @@ class RegisterPage extends StatelessWidget {
                           ),
                           backgroundColor: AppColors.primary,
                         ),
-                        child: Text(
-                          'Sign Up',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
+                        child: _isLoading
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
