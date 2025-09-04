@@ -36,7 +36,7 @@ func main() {
 	// Routes
 	user.UserRoutes(r, db)
 	spot.SpotRoutes(r, db)
-	r.POST("/api/spot/add-image/:id", imageHandler.AddImageToSpot)
+	r.POST("/api/spot/images", imageHandler.AddImageToSpot)
 
 	err = r.Run(fmt.Sprintf(":%s", configEnv.Port))
 	if err != nil {

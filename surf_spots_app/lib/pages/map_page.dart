@@ -293,58 +293,55 @@ class MapPageState extends State<MapPage> {
     );
   }
 
-  void _validateAndAddSpot() {
+  Future<void> _validateAndAddSpot() async {
     if (_formKey.currentState!.validate() &&
         _selectedNiveau != null &&
         _selectedDifficulte != null &&
-        _images.isNotEmpty && // Au moins une photo
-        _pickedLocation !=
-            null // Point GPS sélectionné
-            ) {
-      // Crée un nouvel objet SurfSpot
-      final newSpot = SurfSpot(
-        name: _spotController.text,
-        city: _villeController.text,
-        description: _descriptionController.text,
-        level: _selectedNiveau ?? 1,
-        difficulty: _selectedDifficulte ?? 1,
-        imageBase64:
-            [], // Tu peux laisser vide ici, car tu n’as pas encore les images en base64
-        isLiked: false,
+        _images.isNotEmpty &&
+        _pickedLocation != null) {
+      // 1. Envoie le spot au backend
+      final spotResponse = await http.post(
+        Uri.parse('http://10.0.2.2:4000/api/spot/create'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': _spotController.text,
+          'city': _villeController.text,
+          'description': _descriptionController.text,
+          'level': _selectedNiveau,
+          'difficulty': _selectedDifficulte,
+          'gps': "${_pickedLocation!.latitude},${_pickedLocation!.longitude}",
+          'user_id': 1, // ou l'ID de l'utilisateur connecté
+        }),
       );
 
-      setState(() {
-        _markers.add(
-          Marker(
-            markerId: MarkerId(DateTime.now().toString()),
-            position: _pickedLocation!,
-            infoWindow: InfoWindow(
-              title: newSpot.name,
-              snippet:
-                  "${newSpot.city}\nNiveau: ${newSpot.level} | Difficulté: ${newSpot.difficulty}\n${newSpot.description}",
-            ),
-            onTap: () {
-              setState(() {
-                _selectedSpot = newSpot;
-                _selectedSpotTitle = newSpot.name;
-                _selectedSpotCity = newSpot.city;
-                _selectedSpotLevel = newSpot.level;
-                _selectedSpotDifficulty = newSpot.difficulty;
-                _selectedSpotDescription = newSpot.description;
-                _isAddingSpot = false;
-              });
-              _panelController.open();
-            },
-          ),
-        );
-        _pickedLocation = null;
-        _isAddingSpot = false;
-      });
+      if (spotResponse.statusCode == 201) {
+        final spotData = jsonDecode(spotResponse.body);
+        final spotId = spotData['id']; // récupère l'ID du spot créé
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Spot ajouté !')));
-      _panelController.close();
+        // 2. Envoie chaque image au backend
+        for (var image in _images) {
+          final bytes = await image.readAsBytes();
+          final base64Image = base64Encode(bytes);
+
+          await http.post(
+            Uri.parse('http://10.0.2.2:4000/api/spot/images'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'spot_id': spotId, 'image_data': base64Image}),
+          );
+        }
+
+        // Recharge les markers depuis la BDD
+        await fetchSpotsAndMarkers();
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Spot ajouté !')));
+        _panelController.close();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur lors de l\'ajout du spot')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
