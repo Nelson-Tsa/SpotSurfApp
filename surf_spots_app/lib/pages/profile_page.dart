@@ -1,34 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/constants/colors.dart';
+import '../services/auth_service.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 50),
-            _buildProfileInfo(),
-            const SizedBox(height: 30),
-            _buildProfileSettings(),
-            const SizedBox(height: 20),
-            const Carroussel(),
-            const SizedBox(height: 30),
-            _buildLogoutSection(),
-            const SizedBox(height: 20),
-            _buildFooterLinks(),
-          ],
-        ),
-      ),
+    return FutureBuilder<bool>(
+      future: AuthService.isLoggedIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final isLoggedIn = snapshot.data ?? false;
+
+        if (isLoggedIn) {
+          // Utilisateur connecté - afficher le profil complet
+          return Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 50),
+                  _buildProfileInfo(),
+                  const SizedBox(height: 30),
+                  _buildProfileSettings(),
+                  const SizedBox(height: 20),
+                  const Carroussel(),
+                  const SizedBox(height: 30),
+                  _buildLogoutSection(context),
+                  const SizedBox(height: 20),
+                  _buildFooterLinks(),
+                ],
+              ),
+            ),
+          );
+        } else {
+          // Utilisateur non connecté - afficher les boutons login/register
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.black,
+                    maximumSize: const Size(350, 60),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                  child: const Text(
+                    'Se connecter',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.black,
+                    minimumSize: const Size(170, 30),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  child: const Text(
+                    'S\'inscrire',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
     );
   }
 
-  // --- Header ---
   Widget _buildHeader() {
     return Container(
       color: AppColors.primary,
@@ -55,7 +130,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  // --- Profile Info ---
   Widget _buildProfileInfo() {
     return Column(
       children: [
@@ -81,7 +155,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  // --- Profile Settings Section ---
   Widget _buildProfileSettings() {
     return Container(
       width: double.infinity,
@@ -122,8 +195,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  // --- Logout Section ---
-  Widget _buildLogoutSection() {
+  Widget _buildLogoutSection(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -142,14 +214,19 @@ class ProfilePage extends StatelessWidget {
               color: Colors.grey.withAlpha(50),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: TextButton(onPressed: () {}, child: const Text("Log Out")),
+            child: TextButton(
+              onPressed: null, // Désactivé temporairement
+              child: const Text(
+                "Log Out",
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // --- Footer Links ---
   Widget _buildFooterLinks() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
