@@ -11,96 +11,35 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  Key _futureKey = UniqueKey();
+
+  void _refreshProfile() {
+    setState(() {
+      _futureKey = UniqueKey();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: AuthService.isLoggedIn(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final isLoggedIn = snapshot.data ?? false;
-
-        if (isLoggedIn) {
-          // Utilisateur connecté - afficher le profil complet
-          return Scaffold(
-            body: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 50),
-                  _buildProfileInfo(),
-                  const SizedBox(height: 30),
-                  _buildProfileSettings(),
-                  const SizedBox(height: 20),
-                  const Carroussel(),
-                  const SizedBox(height: 30),
-                  _buildLogoutSection(context),
-                  const SizedBox(height: 20),
-                  _buildFooterLinks(),
-                ],
-              ),
-            ),
-          );
-        } else {
-          // Utilisateur non connecté - afficher les boutons login/register
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    backgroundColor: Colors.black,
-                    maximumSize: const Size(350, 60),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () => Navigator.pushNamed(context, '/login'),
-                  child: const Text(
-                    'Se connecter',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    backgroundColor: Colors.black,
-                    minimumSize: const Size(170, 30),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: const Text(
-                    'S\'inscrire',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-      },
+    // Simplement afficher le profil - la logique isLoggedIn est gérée dans main.dart
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 50),
+            _buildProfileInfo(),
+            const SizedBox(height: 30),
+            _buildProfileSettings(),
+            const SizedBox(height: 20),
+            const Carroussel(),
+            const SizedBox(height: 30),
+            _buildLogoutSection(context),
+            const SizedBox(height: 20),
+            _buildFooterLinks(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -215,11 +154,11 @@ class _ProfilePageState extends State<ProfilePage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: TextButton(
-              onPressed: null, // Désactivé temporairement
-              child: const Text(
-                "Log Out",
-                style: TextStyle(color: Colors.grey),
-              ),
+              onPressed: () async {
+                await AuthService.logout();
+                _refreshProfile();
+              },
+              child: const Text("Log Out", style: TextStyle(color: Colors.red)),
             ),
           ),
         ],

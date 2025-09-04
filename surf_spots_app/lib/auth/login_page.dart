@@ -40,8 +40,17 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      widget.onLoginSuccess?.call(); // Appeler le callback si fourni
       _showMessage(result['message'], Colors.green);
+
+      // Si un callback est fourni, l'utiliser (cas du FutureBuilder dans main.dart)
+      if (widget.onLoginSuccess != null) {
+        widget.onLoginSuccess!.call();
+        // Petit délai pour permettre au callback de s'exécuter
+        await Future.delayed(const Duration(milliseconds: 100));
+      } else {
+        // Naviguer vers l'accueil au lieu de juste pop
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      }
     } else {
       _showMessage(result['message'], Colors.red);
     }
