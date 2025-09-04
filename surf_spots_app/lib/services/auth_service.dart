@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String _baseUrl = 'http://10.0.2.2:4000/api/users/';
+  static const String _baseUrl = 'http://10.0.2.2:4000/api/users';
   static const String _loginKey = 'is_logged_in';
 
   static Future<Map<String, dynamic>> login({
@@ -72,14 +72,31 @@ class AuthService {
   }
 
   static Future<Map<String, dynamic>> logout() async {
-    // TODO: Intégrer avec l'API Golang
-    // final response = await http.post(
-    //   Uri.parse('$_baseUrl/logout'),
-    //   headers: {'Content-Type': 'application/json'},
-    // );
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/logout'),
 
-    await _setLoggedIn(false);
-    return {'success': true, 'message': 'Déconnexion réussie'};
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        await _setLoggedIn(false);
+
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Déconnexion réussie',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['error'] ?? 'Erreur lors de la déconnexion',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur réseau: $e'};
+    }
   }
 
   static Future<bool> isLoggedIn() async {
