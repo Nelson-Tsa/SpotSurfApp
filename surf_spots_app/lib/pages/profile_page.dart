@@ -157,6 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () async {
                 await AuthService.logout();
                 _refreshProfile();
+                Navigator.pushReplacementNamed(context, '/login');
               },
               child: const Text("Log Out", style: TextStyle(color: Colors.red)),
             ),
