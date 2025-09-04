@@ -7,14 +7,14 @@ class ExplorePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent, // pour ne pas écraser le fond
+    return const Scaffold(
+      backgroundColor: Colors.transparent,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          SearchBarSpot(),
+        children: [
+          SearchBarSpot(hintText: 'Rechercher un spot...'),
           SizedBox(height: 0.5),
-          Expanded(child: GalleryPage()),
+          Expanded(child: GalleryPage(showOnlyFavorites: false)),
         ],
       ),
     );

@@ -1,4 +1,6 @@
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../models/surf_spot.dart';
 
 Future<void> createSpotWithImage({
   required String name,
@@ -26,5 +28,37 @@ Future<void> createSpotWithImage({
     print('Spot créé avec succès');
   } else {
     print('Erreur lors de la création du spot');
+  }
+}
+
+class SpotService {
+  static const String baseUrl = 'http://10.0.2.2:4000/api/spot';
+
+  static Future<List<SurfSpot>> fetchAllSpots() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/spots'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => SurfSpot.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load spots');
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  static List<SurfSpot> filterSpots(List<SurfSpot> spots, String query) {
+    if (query.isEmpty) return spots;
+
+    return spots.where((spot) {
+      return spot.name.toLowerCase().contains(query.toLowerCase()) ||
+          spot.city.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+  }
+
+  static List<SurfSpot> getFavoriteSpots(List<SurfSpot> spots) {
+    return spots.where((spot) => spot.isLiked == true).toList();
   }
 }
