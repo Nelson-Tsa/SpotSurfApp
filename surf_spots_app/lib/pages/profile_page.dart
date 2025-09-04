@@ -11,9 +11,18 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  Key _futureKey = UniqueKey();
+
+  // void _refreshProfile() {
+  //   setState(() {
+  //     _futureKey = UniqueKey();
+  //   });
+  // }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
+      key: _futureKey,
       future: AuthService.isLoggedIn(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -215,11 +224,12 @@ class _ProfilePageState extends State<ProfilePage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: TextButton(
-              onPressed: null, // Désactivé temporairement
-              child: const Text(
-                "Log Out",
-                style: TextStyle(color: Colors.grey),
-              ),
+              onPressed: null,
+              // () async {
+              //   await AuthService.logout();
+              //   _refreshProfile();
+              // },
+              child: const Text("Log Out", style: TextStyle(color: Colors.red)),
             ),
           ),
         ],
