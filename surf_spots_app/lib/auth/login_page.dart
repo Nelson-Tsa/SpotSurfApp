@@ -1,10 +1,57 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
+import '../services/auth_service.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key, this.onLoginSuccess});
+  final VoidCallback? onLoginSuccess;
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showMessage('Veuillez remplir tous les champs', Colors.orange);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = await AuthService.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    setState(() => _isLoading = false);
+
+    if (result['success']) {
+      widget.onLoginSuccess?.call(); // Appeler le callback si fourni
+      _showMessage(result['message'], Colors.green);
+    } else {
+      _showMessage(result['message'], Colors.red);
+    }
+  }
+
+  void _showMessage(String message, Color color) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +93,17 @@ class LoginPage extends StatelessWidget {
                     CustomInputField(
                       label: 'Email',
                       keyboardType: TextInputType.emailAddress,
+                      controller: _emailController,
                     ),
-                    CustomInputField(label: 'Password', obscureText: true),
+                    CustomInputField(
+                      label: 'Password',
+                      obscureText: true,
+                      controller: _passwordController,
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Handle registration logic here
-                        },
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           minimumSize: Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
@@ -61,38 +111,34 @@ class LoginPage extends StatelessWidget {
                           ),
                           backgroundColor: AppColors.primary,
                         ),
-                        child: Text(
-                          'Sign In',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
+                        child: _isLoading
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
                 ),
               ),
               Column(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () {
-                      // Navigator.pushNamed(context, '/forgot-password');
-                    },
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
                     child: Text(
-                      'Forgot Password?',
+                      "Don't have an account? Sign Up",
                       style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/register');
-                      },
-                      child: Text(
-                        "Don't have an account? Sign Up",
-                        style: TextStyle(color: AppColors.primary),
-                      ),
                     ),
                   ),
                   SizedBox(height: 10),

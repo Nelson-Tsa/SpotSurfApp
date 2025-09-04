@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'dart:io';
+import 'dart:convert';
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -20,8 +21,8 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   void initState() {
     super.initState();
     _spot = widget.spot;
-    _backgroundImageUrl = _spot.imageUrls.isNotEmpty
-        ? _spot.imageUrls.first
+    _backgroundImageUrl = _spot.imageBase64.isNotEmpty
+        ? _spot.imageBase64.first
         : '';
   }
 
@@ -74,7 +75,9 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   }
 
   Widget _buildPhotoGallery() {
-    final validImages = _spot.imageUrls.where((url) => url.isNotEmpty).toList();
+    final validImages = _spot.imageBase64
+        .where((url) => url.isNotEmpty)
+        .toList();
 
     if (validImages.isEmpty) {
       return const SizedBox.shrink();
@@ -94,12 +97,11 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
             scrollDirection: Axis.horizontal,
             itemCount: validImages.length,
             itemBuilder: (context, index) {
-              final imgPath = validImages[index];
-              final isAsset = imgPath.startsWith('assets/');
+              final imgBase64 = validImages[index];
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    _backgroundImageUrl = imgPath;
+                    _backgroundImageUrl = imgBase64;
                   });
                 },
                 child: Container(
@@ -108,7 +110,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _backgroundImageUrl == imgPath
+                      color: _backgroundImageUrl == imgBase64
                           ? Colors.blue
                           : Colors.transparent,
                       width: 2,
@@ -116,33 +118,19 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
-                    child: isAsset
-                        ? Image.asset(
-                            imgPath,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey[600],
-                                ),
-                              );
-                            },
-                          )
-                        : Image.file(
-                            File(imgPath),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey[600],
-                                ),
-                              );
-                            },
+                    child: Image.memory(
+                      base64Decode(imgBase64),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey[600],
                           ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               );
@@ -155,13 +143,10 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
 
   Widget _buildBackgroundImage() {
     if (_backgroundImageUrl.isEmpty) return const SizedBox.shrink();
-    final isAsset = _backgroundImageUrl.startsWith('assets/');
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: isAsset
-              ? AssetImage(_backgroundImageUrl)
-              : FileImage(File(_backgroundImageUrl)) as ImageProvider,
+          image: MemoryImage(base64Decode(_backgroundImageUrl)),
           fit: BoxFit.contain,
           alignment: Alignment.center,
         ),
@@ -199,7 +184,9 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   Expanded(
                     child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 50.0), // Décale de 50 pixels vers la droite
+                        padding: const EdgeInsets.only(
+                          right: 50.0,
+                        ), // Décale de 50 pixels vers la droite
                         child: Text(
                           "Détails du spot",
                           style: const TextStyle(
@@ -210,7 +197,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                       ),
                     ),
                   ),
-                  
                 ],
               ),
               const SizedBox(height: 8),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -67,6 +69,7 @@ class MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
+    fetchSpotsAndMarkers(); // Ajoute cet appel ici
 
     // Exemple de spot
     _markers.add(
@@ -90,7 +93,7 @@ class MapPageState extends State<MapPage> {
               difficulty: 2,
               description:
                   'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.',
-              imageUrls: [
+              imageBase64: [
                 'assets/images/teahupoo.jpg',
                 'assets/images/teahupoo2.jpg',
                 'assets/images/teahupoo3.jpg',
@@ -102,6 +105,62 @@ class MapPageState extends State<MapPage> {
         },
       ),
     );
+  }
+
+  Future<void> fetchSpotsAndMarkers() async {
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:4000/api/spot/spots'),
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        _markers.clear();
+        for (var jsonSpot in data) {
+          final gps = jsonSpot['gps'] as String;
+          final parts = gps.split(',');
+          if (parts.length == 2) {
+            final lat = double.tryParse(parts[0].trim());
+            final lon = double.tryParse(parts[1].trim());
+            if (lat != null && lon != null) {
+              final spot = SurfSpot(
+                name: jsonSpot['name'],
+                city: jsonSpot['city'],
+                description: jsonSpot['description'],
+                level: int.tryParse(jsonSpot['level'].toString()) ?? 1,
+                difficulty:
+                    int.tryParse(jsonSpot['difficulty'].toString()) ?? 1,
+                imageBase64: jsonSpot['images'] != null
+                    ? (jsonSpot['images'] as List)
+                          .map((img) => img['image_data'] ?? '')
+                          .where((img) => img != '')
+                          .cast<String>()
+                          .toList()
+                    : [],
+              );
+              _markers.add(
+                Marker(
+                  markerId: MarkerId(spot.name),
+                  position: LatLng(lat, lon),
+                  infoWindow: InfoWindow(title: spot.name),
+                  onTap: () {
+                    setState(() {
+                      _selectedSpot = spot;
+                      _selectedSpotTitle = spot.name;
+                      _selectedSpotCity = spot.city;
+                      _selectedSpotLevel = spot.level;
+                      _selectedSpotDifficulty = spot.difficulty;
+                      _selectedSpotDescription = spot.description;
+                      _isAddingSpot = false;
+                    });
+                    _panelController.open();
+                  },
+                ),
+              );
+            }
+          }
+        }
+      });
+    }
   }
 
   Widget buildSpotDetailsPanel() {
@@ -183,6 +242,8 @@ class MapPageState extends State<MapPage> {
                 Text(
                   _selectedSpotDescription,
                   style: const TextStyle(fontSize: 16),
+                  maxLines: 3, // Limite à 3 lignes
+                  overflow: TextOverflow.ellipsis, // Ajoute "...",
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -190,8 +251,8 @@ class MapPageState extends State<MapPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 15),
-                _selectedSpot != null && _selectedSpot!.imageUrls.isNotEmpty
-                    ? buildSpotImage(_selectedSpot!.imageUrls[0])
+                _selectedSpot != null && _selectedSpot!.imageBase64.isNotEmpty
+                    ? buildSpotImage(_selectedSpot!.imageBase64[0])
                     : const SizedBox.shrink(),
               ],
             ),
@@ -247,7 +308,8 @@ class MapPageState extends State<MapPage> {
         description: _descriptionController.text,
         level: _selectedNiveau ?? 1,
         difficulty: _selectedDifficulte ?? 1,
-        imageUrls: _images.map((img) => img.path).toList(),
+        imageBase64:
+            [], // Tu peux laisser vide ici, car tu n’as pas encore les images en base64
         isLiked: false,
       );
 
@@ -322,14 +384,21 @@ class MapPageState extends State<MapPage> {
     // Si le chemin commence par 'assets/', c'est une image d'asset
     if (imagePath.startsWith('assets/')) {
       return Image.asset(imagePath, height: 50, width: 70, fit: BoxFit.cover);
+    } else if (imagePath.isNotEmpty) {
+      // Si c'est une chaîne base64, on la décode
+      try {
+        return Image.memory(
+          base64Decode(imagePath),
+          height: 50,
+          width: 70,
+          fit: BoxFit.cover,
+        );
+      } catch (e) {
+        return const SizedBox.shrink();
+      }
     } else {
       // Sinon, c'est une image locale (fichier)
-      return Image.file(
-        File(imagePath),
-        height: 50,
-        width: 70,
-        fit: BoxFit.cover,
-      );
+      return const SizedBox.shrink();
     }
   }
 
