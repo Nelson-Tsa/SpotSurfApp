@@ -1,7 +1,6 @@
 package spot
 
 import (
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"surf_spots_app/model"
@@ -10,38 +9,31 @@ import (
 )
 
 func (h *SpotHandler) CreateSpot(ctx *gin.Context) {
-	// Récupère les champs du formulaire
-	name := ctx.PostForm("name")
-	city := ctx.PostForm("city")
-	description := ctx.PostForm("description")
-	level := ctx.PostForm("level")
-	difficulty := ctx.PostForm("difficulty")
-	gps := ctx.PostForm("gps")
-	userID := ctx.PostForm("user_id")
-
-	// Récupère le fichier image
-	file, _, err := ctx.Request.FormFile("image")
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Image requise"})
-		return
+	var req struct {
+		Name        string `json:"name"`
+		City        string `json:"city"`
+		Description string `json:"description"`
+		Level       int    `json:"level"`      // <-- int ici
+		Difficulty  int    `json:"difficulty"` // <-- int ici
+		Gps         string `json:"gps"`
+		UserID      int    `json:"user_id"`
 	}
-	defer file.Close()
-
-	imageBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lecture image"})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Format JSON invalide",
+			"details": err.Error(), // Ajoute ce détail
+		})
 		return
 	}
 
-	// Crée le spot
 	spot := model.Spots{
-		Name:        name,
-		City:        city,
-		Description: description,
-		Level:       level,
-		Difficulty:  difficulty,
-		Gps:         gps,
-		UserID:      atoi(userID),
+		Name:        req.Name,
+		City:        req.City,
+		Description: req.Description,
+		Level:       strconv.Itoa(req.Level),      // conversion int -> string
+		Difficulty:  strconv.Itoa(req.Difficulty), // conversion int -> string
+		Gps:         req.Gps,
+		UserID:      req.UserID,
 		LikeCount:   0,
 	}
 	if err := h.DB.Create(&spot).Error; err != nil {
@@ -49,17 +41,7 @@ func (h *SpotHandler) CreateSpot(ctx *gin.Context) {
 		return
 	}
 
-	// Crée l'image et lie au spot
-	image := model.Images{
-		SpotID: spot.ID,
-		ImageData:  imageBytes,
-	}
-	if err := h.DB.Create(&image).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, spot)
+	ctx.JSON(http.StatusCreated, gin.H{"id": spot.ID})
 }
 
 // Helper pour convertir string en int
