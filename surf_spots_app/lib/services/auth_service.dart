@@ -24,6 +24,7 @@ class AuthService {
         return {
           'success': true,
           'message': data['message'] ?? 'Connexion réussie',
+          'user': data['user'], // <-- Ajoute cette ligne !
         };
       } else {
         return {

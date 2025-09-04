@@ -6,7 +6,7 @@ class SurfSpot {
   final int level;
   final int difficulty;
   final List<String> imageBase64;
-  final String userId; // ou creatorId selon ton choix
+  final int userId; // ou creatorId selon ton choix
 
   bool? isLiked; // <-- Ajoute ce champ
 

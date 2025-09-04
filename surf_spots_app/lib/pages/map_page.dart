@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:provider/provider.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/pages/spot_detail_page.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
+import 'package:surf_spots_app/providers/user_provider.dart';
 import 'dart:io';
 
 class MapPage extends StatefulWidget {
@@ -102,7 +104,7 @@ class MapPageState extends State<MapPage> {
                 'assets/images/teahupoo2.jpg',
                 'assets/images/teahupoo3.jpg',
               ],
-              userId: '1', // ou l’id du créateur/admin
+              userId: 1, // ou l’id du créateur/admin
               isLiked: false,
             );
           });
@@ -133,7 +135,8 @@ class MapPageState extends State<MapPage> {
                 city: jsonSpot['city'],
                 description: jsonSpot['description'],
                 level: int.tryParse(jsonSpot['level'].toString()) ?? 1,
-                difficulty: int.tryParse(jsonSpot['difficulty'].toString()) ?? 1,
+                difficulty:
+                    int.tryParse(jsonSpot['difficulty'].toString()) ?? 1,
                 imageBase64: jsonSpot['images'] != null
                     ? (jsonSpot['images'] as List)
                           .map((img) => img['image_data'] ?? '')
@@ -141,7 +144,7 @@ class MapPageState extends State<MapPage> {
                           .cast<String>()
                           .toList()
                     : [],
-                userId: jsonSpot['user_id'].toString(), // Ajoute le userId
+                userId: jsonSpot['user_id'], // Ajoute le userId
               );
               _markers.add(
                 Marker(
@@ -280,15 +283,30 @@ class MapPageState extends State<MapPage> {
                   ],
                 ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_selectedSpot != null) {
-                    Navigator.push(
+                    final refresh = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
                             SpotDetailPage(spot: _selectedSpot!),
                       ),
                     );
+
+                    if (refresh == true) {
+                      // Vide les infos du spot et ferme le panel
+                      setState(() {
+                        _selectedSpot = null;
+                        _selectedSpotTitle = "Aucun spot sélectionné";
+                        _selectedSpotDescription =
+                            "Cliquez sur un marqueur pour voir les détails ici.";
+                        _selectedSpotCity = "";
+                        _selectedSpotLevel = 0;
+                        _selectedSpotDifficulty = 0;
+                      });
+                      _panelController.close();
+                      await fetchSpotsAndMarkers(); // Rafraîchis la map si besoin
+                    }
                   }
                 },
                 child: const Text("Détails"),
@@ -301,7 +319,13 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _validateAndAddSpot() async {
-    if (_isSubmitting) return; // Empêche les doubles clics
+    if (_isSubmitting) return;
+
+    final currentUser = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).currentUser;
+    final currentUserId = currentUser?.id;
 
     setState(() {
       _isSubmitting = true;
@@ -326,7 +350,7 @@ class MapPageState extends State<MapPage> {
           'level': _selectedNiveau,
           'difficulty': _selectedDifficulte,
           'gps': "${_pickedLocation!.latitude},${_pickedLocation!.longitude}",
-          'user_id': 1, // ou l'ID de l'utilisateur connecté
+          'user_id': currentUserId, // <-- ici
         }),
       );
 
@@ -434,6 +458,13 @@ class MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).currentUser;
+    final currentUserId = currentUser
+        ?.id; // ou currentUser!.id si tu es sûr qu'il n'est jamais null
+
     return Scaffold(
       body: SlidingUpPanel(
         controller: _panelController,

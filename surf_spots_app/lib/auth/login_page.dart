@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
 import '../services/auth_service.dart';
 import 'package:surf_spots_app/constants/colors.dart';
+import '../providers/user_provider.dart';
+import 'package:surf_spots_app/models/user.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, this.onLoginSuccess});
@@ -36,11 +39,27 @@ class _LoginPageState extends State<LoginPage> {
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
+    print('Réponse login : $result');
+    print('Type de result[user] : ${result['user']?.runtimeType}');
+    print('Contenu de result[user] : ${result['user']}');
 
     setState(() => _isLoading = false);
 
     if (result['success']) {
       _showMessage(result['message'], Colors.green);
+
+      if (result['user'] != null && result['user'] is Map<String, dynamic>) {
+        Provider.of<UserProvider>(
+          context,
+          listen: false,
+        ).setUser(User.fromJson(result['user']));
+      } else {
+        _showMessage(
+          "Erreur: utilisateur non trouvé dans la réponse",
+          Colors.red,
+        );
+        return;
+      }
 
       // Si un callback est fourni, l'utiliser (cas du FutureBuilder dans main.dart)
       if (widget.onLoginSuccess != null) {

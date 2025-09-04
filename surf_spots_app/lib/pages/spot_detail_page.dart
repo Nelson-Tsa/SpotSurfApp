@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart'; // Pour Navigator.pop si besoin
 import 'package:provider/provider.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
+import 'package:http/http.dart' as http;
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -157,9 +158,30 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
     );
   }
 
+  Future<void> deleteSpot(String spotId) async {
+    final response = await http.delete(
+      Uri.parse('http://10.0.2.2:4000/spots/$spotId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode == 200) {
+      Navigator.of(context).pop(true); // true = suppression effectuée
+    } else {
+      // Affiche une erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la suppression du spot')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context).currentUser;
+
+    print('currentUser: ${currentUser?.id}, role: ${currentUser?.role}');
+    print('spot.userId: ${_spot.userId}');
+    print(
+      'Affiche bouton: ${currentUser != null && (currentUser.role == 'admin' || currentUser.id == _spot.userId)}',
+    );
 
     return Scaffold(
       body: SlidingUpPanel(
@@ -326,10 +348,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                                 );
                                 if (confirm == true) {
                                   // Appelle ta logique de suppression ici
-                                  // await deleteSpot(_spot.id);
-                                  Navigator.of(
-                                    context,
-                                  ).pop(); // Retour à la liste
+                                  await deleteSpot(_spot.id);
                                 }
                               },
                             ),

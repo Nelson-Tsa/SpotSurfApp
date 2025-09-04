@@ -54,7 +54,27 @@ func (h *UserHandler) LoginUsers(ctx *gin.Context) {
 	cookie := setAuthCookie(token)
 	http.SetCookie(ctx.Writer, cookie)
 
-	ctx.JSON(200, gin.H{"message": "Logged in successfully"})
+	log.Printf("Réponse envoyée : %+v", gin.H{
+		"success": true,
+		"message": "Logged in successfully",
+		"user": gin.H{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"role":  user.Role,
+		},
+	})
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Logged in successfully",
+		"user": gin.H{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"role":  user.Role,
+		},
+	})
 }
 
 func setAuthCookie(token string) *http.Cookie {

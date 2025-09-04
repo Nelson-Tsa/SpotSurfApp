@@ -32,7 +32,7 @@ class _GalleryPageState extends State<GalleryPage> {
             .map(
               (json) => SurfSpot(
                 id: json['id'].toString(), // Ajoute cette ligne
-                userId: json['user_id'].toString(), // Ajoute cette ligne
+                userId: json['user_id'], // Ajoute cette ligne
                 name: json['name'],
                 city: json['city'],
                 level: int.tryParse(json['level'].toString()) ?? 1,
