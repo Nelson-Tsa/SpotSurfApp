@@ -55,5 +55,7 @@ func (h *UserHandler) AuthRequired(ctx *gin.Context) {
 	}
 
 	ctx.Set("user", user)
+	ctx.Set("user_id", user.ID)
+	ctx.Set("role", user.Role)
 	ctx.Next()
 }

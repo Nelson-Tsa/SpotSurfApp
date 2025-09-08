@@ -1,6 +1,8 @@
 package spot
 
 import (
+	"surf_spots_app/controller/user"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -11,20 +13,21 @@ type SpotHandler struct {
 
 func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 	handler := &SpotHandler{DB: db}
+	userHandler := &user.UserHandler{DB: db}
 
-	publicUserRoutes := router.Group("/api/spot")
+	// Routes publiques (lecture seule)
+	publicSpotRoutes := router.Group("/api/spot")
 	{
-		publicUserRoutes.POST("/create", handler.CreateSpot)
-		publicUserRoutes.GET("/spots", handler.GetAllSpots)
-		publicUserRoutes.PUT("/update", handler.UpdateSpot)
-		publicUserRoutes.DELETE("/delete", handler.DeleteSpot)
-		// publicUserRoutes.GET("/spot/:id", handler.GetSpotByID)
+		publicSpotRoutes.GET("/spots", handler.GetAllSpots)
+		// publicSpotRoutes.GET("/spot/:id", handler.GetSpotByID)
 	}
 
-	// protectedUserRoutes := router.Group("/api/users")
-	// protectedUserRoutes.Use(middleware.AuthMiddleware())
-	// {
-	// 	protectedUserRoutes.GET("/profile", controller.GetProfile)
-	// 	protectedUserRoutes.PUT("/profile", controller.UpdateProfile)
-	// }
+	// Routes protégées (nécessitent une authentification)
+	protectedSpotRoutes := router.Group("/api/spot")
+	protectedSpotRoutes.Use(userHandler.AuthRequired)
+	{
+		protectedSpotRoutes.POST("/create", handler.CreateSpot)
+		protectedSpotRoutes.PUT("/update/:id", handler.UpdateSpot)
+		protectedSpotRoutes.DELETE("/delete/:id", handler.DeleteSpot)
+	}
 }

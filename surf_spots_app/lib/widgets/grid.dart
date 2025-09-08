@@ -45,6 +45,7 @@ class _GalleryPageState extends State<GalleryPage> {
                           .cast<String>()
                           .toList()
                     : [],
+                gps: json['gps'] ?? '', // <-- AJOUTE CETTE LIGNE
               ),
             )
             .toList();

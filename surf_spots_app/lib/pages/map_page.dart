@@ -92,7 +92,7 @@ class MapPageState extends State<MapPage> {
             _selectedSpotDescription =
                 'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.';
             _selectedSpot = SurfSpot(
-              id: 'teahupoo', // Ajoute un id unique
+              id: 'teahupoo',
               name: 'Teahupoo Wave',
               city: 'Tahiti, Polynésie',
               level: 1,
@@ -104,7 +104,8 @@ class MapPageState extends State<MapPage> {
                 'assets/images/teahupoo2.jpg',
                 'assets/images/teahupoo3.jpg',
               ],
-              userId: 1, // ou l’id du créateur/admin
+              userId: 1,
+              gps: '-17.8473,-149.2671', // <-- Ajoute ce champ
               isLiked: false,
             );
           });
@@ -145,6 +146,7 @@ class MapPageState extends State<MapPage> {
                           .toList()
                     : [],
                 userId: jsonSpot['user_id'], // Ajoute le userId
+                gps: jsonSpot['gps'] ?? '', // <-- Ajoute cette ligne
               );
               _markers.add(
                 Marker(
@@ -285,7 +287,7 @@ class MapPageState extends State<MapPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_selectedSpot != null) {
-                    final refresh = await Navigator.push(
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
@@ -293,8 +295,20 @@ class MapPageState extends State<MapPage> {
                       ),
                     );
 
-                    if (refresh == true) {
-                      // Vide les infos du spot et ferme le panel
+                    if (result is SurfSpot) {
+                      // Le spot a été mis à jour, on met à jour les données locales
+                      setState(() {
+                        _selectedSpot = result;
+                        _selectedSpotTitle = result.name;
+                        _selectedSpotDescription = result.description;
+                        _selectedSpotCity = result.city;
+                        _selectedSpotLevel = result.level;
+                        _selectedSpotDifficulty = result.difficulty;
+                      });
+                      // Rafraîchit la carte avec les nouvelles données
+                      await fetchSpotsAndMarkers();
+                    } else if (result == true) {
+                      // Le spot a été supprimé
                       setState(() {
                         _selectedSpot = null;
                         _selectedSpotTitle = "Aucun spot sélectionné";
@@ -305,7 +319,7 @@ class MapPageState extends State<MapPage> {
                         _selectedSpotDifficulty = 0;
                       });
                       _panelController.close();
-                      await fetchSpotsAndMarkers(); // Rafraîchis la map si besoin
+                      await fetchSpotsAndMarkers();
                     }
                   }
                 },
@@ -523,9 +537,11 @@ class MapPageState extends State<MapPage> {
                       onDifficulteChanged: (val) =>
                           setState(() => _selectedDifficulte = val),
                       onValidate: _validateAndAddSpot,
-                      images: _images, // AJOUTE CET ARGUMENT
-                      onAddImage: _pickImages, // AJOUTE CET ARGUMENT
-                      onRemoveImage: _removeImage, // AJOUTE CET ARGUMENT
+                      existingImagesBase64: const [], // <-- AJOUTE CETTE LIGNE
+                      images: _images,
+                      onAddImage: _pickImages,
+                      onRemoveImage: _removeImage,
+                      onRemoveExistingImage: (_) {}, // <-- AJOUTE CETTE LIGNE
                     )
                   : buildSpotDetailsPanel(),
             ),

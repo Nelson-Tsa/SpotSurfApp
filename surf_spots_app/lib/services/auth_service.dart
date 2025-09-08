@@ -124,4 +124,7 @@ class AuthService {
       return null;
     }
   }
+
+  // Méthode pour obtenir l'instance Dio avec les cookies d'authentification
+  static Dio get authenticatedDio => _dio;
 }

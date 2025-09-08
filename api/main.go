@@ -23,7 +23,6 @@ func main() {
 	db := db.InitDB(configEnv.DatabaseURL)
 
 	imageHandler := &image.ImageHandler{DB: db}
-	spotHandler := &spot.SpotHandler{DB: db}
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -35,11 +34,6 @@ func main() {
 	user.UserRoutes(r, db)
 	spot.SpotRoutes(r, db)
 	r.POST("/api/spot/images", imageHandler.AddImageToSpot)
-
-	spotGroup := r.Group("/spots")
-	{
-		spotGroup.DELETE("/:id", spotHandler.DeleteSpot)
-	}
 
 	err = r.Run(fmt.Sprintf(":%s", configEnv.Port))
 	if err != nil {

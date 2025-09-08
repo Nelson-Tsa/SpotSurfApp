@@ -54,8 +54,8 @@ class _CarrousselState extends State<Carroussel> {
         _spots = data
             .map(
               (json) => SurfSpot(
-                id: json['id'].toString(), // Ajoute cette ligne
-                userId: json['user_id'], // Ajoute cette ligne
+                id: json['id'].toString(),
+                userId: json['user_id'],
                 name: json['name'],
                 city: json['city'],
                 level: int.tryParse(json['level'].toString()) ?? 1,
@@ -68,6 +68,7 @@ class _CarrousselState extends State<Carroussel> {
                           .cast<String>()
                           .toList()
                     : [],
+                gps: json['gps'] ?? '', // <-- AJOUTE CETTE LIGNE
               ),
             )
             .toList();

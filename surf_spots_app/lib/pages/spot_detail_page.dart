@@ -3,10 +3,12 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/services.dart'; // Pour Navigator.pop si besoin
 import 'package:provider/provider.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:surf_spots_app/widgets/container_forms.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:surf_spots_app/services/auth_service.dart'; // Import AuthService
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -21,6 +23,17 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   late SurfSpot _spot;
   String _backgroundImageUrl = '';
 
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _gpsController;
+  late TextEditingController _villeController;
+  late TextEditingController _spotController;
+  late TextEditingController _descriptionController;
+  int? _selectedNiveau;
+  int? _selectedDifficulte;
+  List<XFile> _images = [];
+  List<String> _existingImagesBase64 = [];
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -28,6 +41,20 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
     _backgroundImageUrl = _spot.imageBase64.isNotEmpty
         ? _spot.imageBase64.first
         : '';
+    _gpsController = TextEditingController(text: _spot.gps);
+    _villeController = TextEditingController(text: _spot.city);
+    _spotController = TextEditingController(text: _spot.name);
+    _descriptionController = TextEditingController(text: _spot.description);
+    _selectedNiveau = _spot.level;
+    _selectedDifficulte = _spot.difficulty;
+    _images = [];
+    _existingImagesBase64 = List<String>.from(_spot.imageBase64);
+  }
+
+  void _removeExistingImage(String imgBase64) {
+    setState(() {
+      _existingImagesBase64.remove(imgBase64);
+    });
   }
 
   Widget _buildLevelIndicator(int level) {
@@ -159,29 +186,151 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   }
 
   Future<void> deleteSpot(String spotId) async {
-    final response = await http.delete(
-      Uri.parse('http://10.0.2.2:4000/spots/$spotId'),
-      headers: {'Content-Type': 'application/json'},
-    );
-    if (response.statusCode == 200) {
-      Navigator.of(context).pop(true); // true = suppression effectuée
-    } else {
-      // Affiche une erreur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la suppression du spot')),
+    try {
+      final response = await AuthService.authenticatedDio.delete(
+        'http://10.0.2.2:4000/api/spot/delete/$spotId',
       );
+      if (response.statusCode == 200) {
+        Navigator.of(context).pop(true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors de la suppression: ${response.data['error']}',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur de connexion: $e')));
     }
+  }
+
+  Future<void> _openEditForm() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 8,
+            right: 8,
+            top: 16,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ContainerForms(
+                      formKey: _formKey,
+                      gpsController: _gpsController,
+                      villeController: _villeController,
+                      spotController: _spotController,
+                      descriptionController: _descriptionController,
+                      onPickLocation: () {},
+                      selectedNiveau: _selectedNiveau,
+                      selectedDifficulte: _selectedDifficulte,
+                      onNiveauChanged: (val) {
+                        setModalState(() => _selectedNiveau = val);
+                      },
+                      onDifficulteChanged: (val) {
+                        setModalState(() => _selectedDifficulte = val);
+                      },
+                      onValidate: () async {
+                        if (!_formKey.currentState!.validate() ||
+                            _selectedNiveau == null ||
+                            _selectedDifficulte == null)
+                          return;
+                        setModalState(() => _isSubmitting = true);
+
+                        // Ajoute les nouvelles images à la liste finale
+                        List<String> allImagesBase64 = [
+                          ..._existingImagesBase64,
+                          ...await Future.wait(
+                            _images.map((img) async {
+                              final bytes = await img.readAsBytes();
+                              return base64Encode(bytes);
+                            }),
+                          ),
+                        ];
+
+                        final response = await AuthService.authenticatedDio.put(
+                          'http://10.0.2.2:4000/api/spot/update/${_spot.id}',
+                          data: jsonEncode({
+                            'name': _spotController.text,
+                            'city': _villeController.text,
+                            'description': _descriptionController.text,
+                            'gps': _gpsController.text,
+                            'level': _selectedNiveau,
+                            'difficulty': _selectedDifficulte,
+                            'images': allImagesBase64,
+                          }),
+                        );
+                        setModalState(() => _isSubmitting = false);
+
+                        if (response.statusCode == 200) {
+                          final updatedSpot = SurfSpot.fromJson(
+                            response.data['spot'],
+                          );
+                          setState(() {
+                            _spot = updatedSpot;
+                            _existingImagesBase64 = List<String>.from(
+                              _spot.imageBase64,
+                            );
+                            _images.clear();
+                          });
+
+                          // Retourne le spot mis à jour à la page précédente
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(updatedSpot);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Erreur lors de la modification'),
+                            ),
+                          );
+                        }
+                      },
+                      existingImagesBase64: _existingImagesBase64,
+                      images: _images,
+                      onAddImage: () async {
+                        final picker = ImagePicker();
+                        final picked = await picker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (picked != null) {
+                          setModalState(() => _images.add(picked));
+                        }
+                      },
+                      onRemoveImage: (img) {
+                        setModalState(() => _images.remove(img));
+                      },
+                      onRemoveExistingImage: (imgBase64) {
+                        setModalState(() {
+                          _existingImagesBase64.remove(imgBase64);
+                        });
+                      },
+                      isSubmitting: _isSubmitting,
+                      formTitle: 'Modifier le spot',
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context).currentUser;
-
-    print('currentUser: ${currentUser?.id}, role: ${currentUser?.role}');
-    print('spot.userId: ${_spot.userId}');
-    print(
-      'Affiche bouton: ${currentUser != null && (currentUser.role == 'admin' || currentUser.id == _spot.userId)}',
-    );
 
     return Scaffold(
       body: SlidingUpPanel(
@@ -189,17 +338,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-                // child: Container(
-                //   width: 40,
-                //   height: 5,
-                //   decoration: BoxDecoration(
-                //     color: Colors.grey[300],
-                //     borderRadius: BorderRadius.circular(12),
-                //   ),
-                // ),
-              ),
+              Padding(padding: const EdgeInsets.only(top: 8.0, bottom: 16.0)),
               Row(
                 children: [
                   IconButton(
@@ -211,9 +350,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   Expanded(
                     child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          right: 50.0,
-                        ), // Décale de 50 pixels vers la droite
+                        padding: const EdgeInsets.only(right: 50.0),
                         child: Text(
                           "Détails du spot",
                           style: const TextStyle(
@@ -313,10 +450,17 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                               color: Colors.grey,
                             ),
                           ),
-                          // Ajout du bouton supprimer
                           if (currentUser != null &&
                               (currentUser.role == 'admin' ||
-                                  currentUser.id == _spot.userId))
+                                  currentUser.id == _spot.userId)) ...[
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.orange,
+                              ),
+                              tooltip: 'Modifier ce spot',
+                              onPressed: _openEditForm,
+                            ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () async {
@@ -347,11 +491,11 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                                   ),
                                 );
                                 if (confirm == true) {
-                                  // Appelle ta logique de suppression ici
                                   await deleteSpot(_spot.id);
                                 }
                               },
                             ),
+                          ],
                         ],
                       ),
                     ],
@@ -363,7 +507,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
         ),
         body: Stack(
           children: [
-            // Background image with 1/3 height and centered
             Positioned(
               top: MediaQuery.of(context).size.height * 0.1,
               left: 0,
@@ -371,7 +514,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
               height: MediaQuery.of(context).size.height * 0.3,
               child: _buildBackgroundImage(),
             ),
-            // Dark overlay for better readability - only on image area
             Positioned(
               top: MediaQuery.of(context).size.height * 0.1,
               left: 0,
@@ -393,7 +535,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                 ),
               ),
             ),
-            // Top area with solid background
             Positioned(
               top: 0,
               left: 0,
@@ -401,7 +542,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
               height: MediaQuery.of(context).size.height * 0.1,
               child: Container(color: Colors.white),
             ),
-            // Bottom area with solid background
             Positioned(
               bottom: 0,
               left: 0,
