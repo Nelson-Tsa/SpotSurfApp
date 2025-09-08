@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 import 'package:surf_spots_app/models/user.dart';
 import '../services/auth_service.dart';
+import '../providers/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -206,6 +208,10 @@ class _ProfilePageState extends State<ProfilePage> {
             child: TextButton(
               onPressed: () async {
                 await AuthService.logout();
+                // Nettoyer aussi le UserProvider
+                if (mounted) {
+                  Provider.of<UserProvider>(context, listen: false).clearUser();
+                }
                 _refreshProfile();
               },
               child: const Text("Log Out", style: TextStyle(color: Colors.red)),

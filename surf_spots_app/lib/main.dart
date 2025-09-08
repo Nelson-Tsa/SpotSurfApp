@@ -86,20 +86,36 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // D'abord vérifier le statut local
       final localStatus = await AuthService.isLoggedIn();
-      if (!localStatus) return false;
+      if (!localStatus) {
+        // Nettoyer le provider si pas connecté localement
+        if (mounted) {
+          Provider.of<UserProvider>(context, listen: false).clearUser();
+        }
+        return false;
+      }
 
       // Ensuite vérifier avec le serveur en essayant de récupérer l'utilisateur
       final user = await AuthService.getUser();
       if (user != null) {
+        // Mettre à jour le UserProvider avec les données utilisateur
+        if (mounted) {
+          Provider.of<UserProvider>(context, listen: false).setUser(user);
+        }
         return true; // Vraiment connecté
       } else {
         // Les cookies ont expiré ou ne sont pas valides, nettoyer le statut local
         await AuthService.logout();
+        if (mounted) {
+          Provider.of<UserProvider>(context, listen: false).clearUser();
+        }
         return false;
       }
     } catch (e) {
       // En cas d'erreur, considérer comme non connecté
       await AuthService.logout();
+      if (mounted) {
+        Provider.of<UserProvider>(context, listen: false).clearUser();
+      }
       return false;
     }
   }

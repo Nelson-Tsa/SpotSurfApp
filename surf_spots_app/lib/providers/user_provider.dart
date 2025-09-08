@@ -8,4 +8,9 @@ class UserProvider with ChangeNotifier {
     currentUser = user;
     notifyListeners();
   }
+
+  void clearUser() {
+    currentUser = null;
+    notifyListeners();
+  }
 }
