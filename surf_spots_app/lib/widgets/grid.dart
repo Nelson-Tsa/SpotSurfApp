@@ -39,7 +39,6 @@ class _GalleryPageState extends State<GalleryPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // Choix des spots à afficher selon le widget
         List<SurfSpot> spotsToShow;
         if (widget.showHistory) {
           spotsToShow = spotsProvider.history;

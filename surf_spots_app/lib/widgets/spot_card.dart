@@ -100,18 +100,29 @@ class _SpotCardState extends State<SpotCard> {
 
     String base64String = widget.spot.imageBase64.first;
 
-    // Supprimer le préfixe si présent
+    // Supprimer le préfixe data si présent
     if (base64String.contains(',')) {
-      base64String = base64String.split(',')[1];
+      final parts = base64String.split(',');
+      base64String = parts.length > 1 ? parts.last : parts.first;
     }
 
     try {
       final bytes = base64Decode(base64String);
-      return Image.memory(bytes, fit: BoxFit.cover, width: double.infinity);
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: Colors.grey[300],
+            child: const Center(child: Icon(Icons.broken_image)),
+          );
+        },
+      );
     } catch (e) {
       return Container(
         color: Colors.grey[300],
-        child: const Center(child: Icon(Icons.image_not_supported)),
+        child: const Center(child: Icon(Icons.broken_image)),
       );
     }
   }
