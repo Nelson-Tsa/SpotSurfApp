@@ -1,9 +1,8 @@
 package image
 
 import (
-	"io/ioutil"
+	"encoding/base64"
 	"net/http"
-	"strconv"
 	"surf_spots_app/model"
 
 	"github.com/gin-gonic/gin"
@@ -15,34 +14,29 @@ type ImageHandler struct {
 }
 
 func (h *ImageHandler) AddImageToSpot(ctx *gin.Context) {
-	spotID := ctx.Param("id")
-
-	file, _, err := ctx.Request.FormFile("image")
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Image requise"})
+	var req struct {
+		SpotID    uint   `json:"spot_id"`
+		ImageData string `json:"image_data"` // base64
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Format JSON invalide"})
 		return
 	}
-	defer file.Close()
 
-	imageBytes, err := ioutil.ReadAll(file)
+	imageBytes, err := base64.StdEncoding.DecodeString(req.ImageData)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lecture image"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Image base64 invalide"})
 		return
 	}
 
 	image := model.Images{
-		SpotID: atoi(spotID),
-		ImageData:  imageBytes,
+		SpotID:    int(req.SpotID), // conversion explicite
+		ImageData: imageBytes,
 	}
 	if err := h.DB.Create(&image).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, image)
-}
-
-func atoi(s string) int {
-	n, _ := strconv.Atoi(s)
-	return n
+	ctx.JSON(http.StatusCreated, gin.H{"message": "Image ajoutée"})
 }

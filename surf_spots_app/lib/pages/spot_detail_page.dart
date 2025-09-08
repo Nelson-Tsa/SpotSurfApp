@@ -3,6 +3,10 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/services.dart'; // Pour Navigator.pop si besoin
+import 'package:provider/provider.dart';
+import 'package:surf_spots_app/providers/user_provider.dart';
+import 'package:http/http.dart' as http;
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -154,8 +158,31 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
     );
   }
 
+  Future<void> deleteSpot(String spotId) async {
+    final response = await http.delete(
+      Uri.parse('http://10.0.2.2:4000/spots/$spotId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode == 200) {
+      Navigator.of(context).pop(true); // true = suppression effectuée
+    } else {
+      // Affiche une erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la suppression du spot')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentUser = Provider.of<UserProvider>(context).currentUser;
+
+    print('currentUser: ${currentUser?.id}, role: ${currentUser?.role}');
+    print('spot.userId: ${_spot.userId}');
+    print(
+      'Affiche bouton: ${currentUser != null && (currentUser.role == 'admin' || currentUser.id == _spot.userId)}',
+    );
+
     return Scaffold(
       body: SlidingUpPanel(
         panel: Padding(
@@ -286,6 +313,45 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                               color: Colors.grey,
                             ),
                           ),
+                          // Ajout du bouton supprimer
+                          if (currentUser != null &&
+                              (currentUser.role == 'admin' ||
+                                  currentUser.id == _spot.userId))
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text(
+                                      'Confirmer la suppression',
+                                    ),
+                                    content: const Text(
+                                      'Voulez-vous vraiment supprimer ce spot ?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text('Annuler'),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                      ),
+                                      TextButton(
+                                        child: const Text(
+                                          'Supprimer',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true) {
+                                  // Appelle ta logique de suppression ici
+                                  await deleteSpot(_spot.id);
+                                }
+                              },
+                            ),
                         ],
                       ),
                     ],

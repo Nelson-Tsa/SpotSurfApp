@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:surf_spots_app/widgets/carroussel.dart';
 import 'package:surf_spots_app/constants/colors.dart';
+import 'package:surf_spots_app/models/user.dart';
 import '../services/auth_service.dart';
+import '../providers/user_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -21,27 +24,71 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Simplement afficher le profil - la logique isLoggedIn est gérée dans main.dart
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 50),
-            _buildProfileInfo(),
-            const SizedBox(height: 30),
-            _buildProfileSettings(),
-            const SizedBox(height: 20),
-            const Carroussel(),
-            const SizedBox(height: 30),
-            _buildLogoutSection(context),
-            const SizedBox(height: 20),
-            _buildFooterLinks(),
-          ],
-        ),
+      body: FutureBuilder<User?>(
+        key: _futureKey,
+        future: AuthService.getUser(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const Center(
+              child: Text('Erreur lors du chargement du profil'),
+            );
+          }
+
+          final user = snapshot.data!;
+          return _buildProfileContent(user);
+        },
       ),
     );
   }
+
+  Widget _buildProfileContent(User user) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 50),
+          _buildProfileInfo(user),
+          const SizedBox(height: 30),
+          _buildProfileSettings(),
+          const SizedBox(height: 20),
+          const Carroussel(),
+          const SizedBox(height: 30),
+          _buildLogoutSection(context),
+          const SizedBox(height: 20),
+          _buildFooterLinks(),
+        ],
+      ),
+    );
+  }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   // Simplement afficher le profil - la logique isLoggedIn est gérée dans main.dart
+  //   return Scaffold(
+  //     body: SingleChildScrollView(
+  //       child: Column(
+  //         children: [
+  //           _buildHeader(),
+  //           const SizedBox(height: 50),
+  //           _buildProfileInfo(),
+  //           const SizedBox(height: 30),
+  //           _buildProfileSettings(),
+  //           const SizedBox(height: 20),
+  //           const Carroussel(),
+  //           const SizedBox(height: 30),
+  //           _buildLogoutSection(context),
+  //           const SizedBox(height: 20),
+  //           _buildFooterLinks(),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildHeader() {
     return Container(
@@ -69,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileInfo() {
+  Widget _buildProfileInfo(User user) {
     return Column(
       children: [
         DecoratedBox(
@@ -86,9 +133,14 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
-          "Kristin Hennessy",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+        Text(
+          user.name, // Utilise le nom de l'utilisateur depuis la DB
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          user.email, // Affiche aussi l'email
+          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
         ),
       ],
     );
@@ -156,6 +208,10 @@ class _ProfilePageState extends State<ProfilePage> {
             child: TextButton(
               onPressed: () async {
                 await AuthService.logout();
+                // Nettoyer aussi le UserProvider
+                if (mounted) {
+                  Provider.of<UserProvider>(context, listen: false).clearUser();
+                }
                 _refreshProfile();
               },
               child: const Text("Log Out", style: TextStyle(color: Colors.red)),

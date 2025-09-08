@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:provider/provider.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/pages/spot_detail_page.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
+import 'package:surf_spots_app/providers/user_provider.dart';
 import 'dart:io';
 
 class MapPage extends StatefulWidget {
@@ -36,6 +38,7 @@ class MapPageState extends State<MapPage> {
   // Variables panel
   bool _isPanelOpen = false;
   bool _isAddingSpot = false;
+  bool _isSubmitting = false;
   void openAddSpotPanel() {
     setState(() {
       _isAddingSpot = true;
@@ -66,6 +69,8 @@ class MapPageState extends State<MapPage> {
 
   List<XFile> _images = [];
 
+  Key _mapKey = UniqueKey();
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +92,7 @@ class MapPageState extends State<MapPage> {
             _selectedSpotDescription =
                 'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.';
             _selectedSpot = SurfSpot(
+              id: 'teahupoo', // Ajoute un id unique
               name: 'Teahupoo Wave',
               city: 'Tahiti, Polynésie',
               level: 1,
@@ -98,6 +104,7 @@ class MapPageState extends State<MapPage> {
                 'assets/images/teahupoo2.jpg',
                 'assets/images/teahupoo3.jpg',
               ],
+              userId: 1, // ou l’id du créateur/admin
               isLiked: false,
             );
           });
@@ -123,6 +130,7 @@ class MapPageState extends State<MapPage> {
             final lon = double.tryParse(parts[1].trim());
             if (lat != null && lon != null) {
               final spot = SurfSpot(
+                id: jsonSpot['id'].toString(), // Ajoute l'id
                 name: jsonSpot['name'],
                 city: jsonSpot['city'],
                 description: jsonSpot['description'],
@@ -136,6 +144,7 @@ class MapPageState extends State<MapPage> {
                           .cast<String>()
                           .toList()
                     : [],
+                userId: jsonSpot['user_id'], // Ajoute le userId
               );
               _markers.add(
                 Marker(
@@ -159,6 +168,7 @@ class MapPageState extends State<MapPage> {
             }
           }
         }
+        // _mapKey = UniqueKey(); // Retire cette ligne ici
       });
     }
   }
@@ -273,15 +283,30 @@ class MapPageState extends State<MapPage> {
                   ],
                 ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_selectedSpot != null) {
-                    Navigator.push(
+                    final refresh = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
                             SpotDetailPage(spot: _selectedSpot!),
                       ),
                     );
+
+                    if (refresh == true) {
+                      // Vide les infos du spot et ferme le panel
+                      setState(() {
+                        _selectedSpot = null;
+                        _selectedSpotTitle = "Aucun spot sélectionné";
+                        _selectedSpotDescription =
+                            "Cliquez sur un marqueur pour voir les détails ici.";
+                        _selectedSpotCity = "";
+                        _selectedSpotLevel = 0;
+                        _selectedSpotDifficulty = 0;
+                      });
+                      _panelController.close();
+                      await fetchSpotsAndMarkers(); // Rafraîchis la map si besoin
+                    }
                   }
                 },
                 child: const Text("Détails"),
@@ -293,58 +318,87 @@ class MapPageState extends State<MapPage> {
     );
   }
 
-  void _validateAndAddSpot() {
+  Future<void> _validateAndAddSpot() async {
+    if (_isSubmitting) return;
+
+    final currentUser = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).currentUser;
+    final currentUserId = currentUser?.id;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
     if (_formKey.currentState!.validate() &&
         _selectedNiveau != null &&
         _selectedDifficulte != null &&
-        _images.isNotEmpty && // Au moins une photo
-        _pickedLocation !=
-            null // Point GPS sélectionné
-            ) {
-      // Crée un nouvel objet SurfSpot
-      final newSpot = SurfSpot(
-        name: _spotController.text,
-        city: _villeController.text,
-        description: _descriptionController.text,
-        level: _selectedNiveau ?? 1,
-        difficulty: _selectedDifficulte ?? 1,
-        imageBase64:
-            [], // Tu peux laisser vide ici, car tu n’as pas encore les images en base64
-        isLiked: false,
+        _images.isNotEmpty &&
+        _pickedLocation != null) {
+      setState(() {
+        _isSubmitting = true;
+      });
+      // 1. Envoie le spot au backend
+      final spotResponse = await http.post(
+        Uri.parse('http://10.0.2.2:4000/api/spot/create'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': _spotController.text,
+          'city': _villeController.text,
+          'description': _descriptionController.text,
+          'level': _selectedNiveau,
+          'difficulty': _selectedDifficulte,
+          'gps': "${_pickedLocation!.latitude},${_pickedLocation!.longitude}",
+          'user_id': currentUserId, // <-- ici
+        }),
       );
 
-      setState(() {
-        _markers.add(
-          Marker(
-            markerId: MarkerId(DateTime.now().toString()),
-            position: _pickedLocation!,
-            infoWindow: InfoWindow(
-              title: newSpot.name,
-              snippet:
-                  "${newSpot.city}\nNiveau: ${newSpot.level} | Difficulté: ${newSpot.difficulty}\n${newSpot.description}",
-            ),
-            onTap: () {
-              setState(() {
-                _selectedSpot = newSpot;
-                _selectedSpotTitle = newSpot.name;
-                _selectedSpotCity = newSpot.city;
-                _selectedSpotLevel = newSpot.level;
-                _selectedSpotDifficulty = newSpot.difficulty;
-                _selectedSpotDescription = newSpot.description;
-                _isAddingSpot = false;
-              });
-              _panelController.open();
-            },
-          ),
-        );
-        _pickedLocation = null;
-        _isAddingSpot = false;
-      });
+      if (spotResponse.statusCode == 201) {
+        final spotData = jsonDecode(spotResponse.body);
+        final spotId = spotData['id']; // récupère l'ID du spot créé
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Spot ajouté !')));
-      _panelController.close();
+        // 2. Envoie chaque image au backend
+        for (var image in _images) {
+          final bytes = await image.readAsBytes();
+          final base64Image = base64Encode(bytes);
+
+          await http.post(
+            Uri.parse('http://10.0.2.2:4000/api/spot/images'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'spot_id': spotId, 'image_data': base64Image}),
+          );
+        }
+
+        // Recharge les markers depuis la BDD
+        await fetchSpotsAndMarkers();
+
+        setState(() {
+          _pickedLocation = null; // Supprime le marker bleu
+          _nouveauMarker = false;
+          // Réinitialise la sélection du spot
+          _selectedSpot = null;
+          _selectedSpotTitle = "Aucun spot sélectionné";
+          _selectedSpotDescription =
+              "Cliquez sur un marqueur pour voir les détails ici.";
+          _selectedSpotCity = "";
+          _selectedSpotLevel = 0;
+          _selectedSpotDifficulty = 0;
+          _isSubmitting = false;
+        });
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Spot ajouté !')));
+        _panelController.close();
+      } else {
+        setState(() {
+          _isSubmitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur lors de l\'ajout du spot')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -404,6 +458,13 @@ class MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).currentUser;
+    final currentUserId = currentUser
+        ?.id; // ou currentUser!.id si tu es sûr qu'il n'est jamais null
+
     return Scaffold(
       body: SlidingUpPanel(
         controller: _panelController,
@@ -442,6 +503,7 @@ class MapPageState extends State<MapPage> {
                       villeController: _villeController,
                       spotController: _spotController,
                       descriptionController: _descriptionController,
+                      isSubmitting: _isSubmitting,
                       onPickLocation: () {
                         setState(() {
                           _markers.removeWhere(
@@ -470,6 +532,7 @@ class MapPageState extends State<MapPage> {
           ],
         ),
         body: GoogleMap(
+          key: _mapKey, // Ajoute la clé ici
           initialCameraPosition: _initialCameraPosition,
           markers: {
             ..._markers,

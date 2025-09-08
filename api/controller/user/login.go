@@ -3,6 +3,7 @@ package user
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"surf_spots_app/config"
 	"surf_spots_app/model"
 	"time"
@@ -40,8 +41,9 @@ func (h *UserHandler) LoginUsers(ctx *gin.Context) {
 	}
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
+		Subject:   strconv.Itoa(int(user.ID)),
 		Issuer:    "surf-spot-app",
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)), // 7 days
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 	})
 
@@ -65,6 +67,6 @@ func setAuthCookie(token string) *http.Cookie {
 		Expires:  time.Now().Add(time.Hour * 24 * 7), // 7 days
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		Secure:   false, // should be true in production with HTTPS
+		Secure:   false, // Mettre à true en production avec HTTPS
 	}
 }
