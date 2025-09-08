@@ -9,6 +9,7 @@ class SurfSpot {
   final int userId; // ou creatorId selon ton choix
 
   bool? isLiked; // <-- Ajoute ce champ
+  int likesCount; // nombre de likes du spot
 
   SurfSpot({
     required this.id,
@@ -20,6 +21,7 @@ class SurfSpot {
     required this.imageBase64,
     required this.userId,
     this.isLiked, // <-- Ajoute dans le constructeur
+    this.likesCount = 0,
   });
 
   factory SurfSpot.fromJson(Map<String, dynamic> json) {
@@ -37,7 +39,9 @@ class SurfSpot {
                 .cast<String>()
                 .toList()
           : [],
-      userId: json['userId'] ?? '', // <-- Assurez-vous de gérer ce champ
+      userId: json['userId'] ?? 0, // <-- Assurez-vous de gérer ce champ
+      likesCount: json['likesCount'] ?? 0, // récupère le nombre de likes si disponible
+      isLiked: json['isLiked'],           // récupère le statut like si disponible
     );
   }
 }

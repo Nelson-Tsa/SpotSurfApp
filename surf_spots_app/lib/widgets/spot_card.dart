@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/constants/colors.dart';
-import 'package:surf_spots_app/pages/spot_detail_page.dart'; // Ajoute l'import
-import 'dart:convert';
+import 'package:surf_spots_app/pages/spot_detail_page.dart';
+import 'package:surf_spots_app/services/spot_service.dart';
 
 class SpotCard extends StatefulWidget {
   final SurfSpot spot;
@@ -15,6 +16,43 @@ class SpotCard extends StatefulWidget {
 }
 
 class _SpotCardState extends State<SpotCard> {
+  @override
+  void initState() {
+    super.initState();
+    _loadLikes();
+  }
+
+  // Charger le nombre de likes depuis le backend
+  Future<void> _loadLikes() async {
+    final count = await getLikes(widget.spot.id);
+    setState(() {
+      widget.spot.likesCount = count;
+    });
+  }
+
+  Future<void> _toggleLike() async {
+    final userId = 3; // ⚠️ provisoire → récupérer depuis Auth
+    bool success;
+
+    if (widget.spot.isLiked == true) {
+      success = await unlikeSpot(widget.spot.id, userId);
+      if (success) {
+        setState(() {
+          widget.spot.isLiked = false;
+          widget.spot.likesCount = (widget.spot.likesCount ?? 1) - 1;
+        });
+      }
+    } else {
+      success = await likeSpot(widget.spot.id, userId);
+      if (success) {
+        setState(() {
+          widget.spot.isLiked = true;
+          widget.spot.likesCount = (widget.spot.likesCount ?? 0) + 1;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -33,7 +71,7 @@ class _SpotCardState extends State<SpotCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
-              height: 90, // Choisis une hauteur adaptée à ton design
+              height: 90,
               child: (widget.spot.imageBase64.isNotEmpty &&
                       widget.spot.imageBase64.first.isNotEmpty)
                   ? Image.memory(
@@ -65,18 +103,23 @@ class _SpotCardState extends State<SpotCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (widget.showLike)
-                    IconButton(
-                      icon: Icon(
-                        widget.spot.isLiked ?? false
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: AppColors.primary,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          widget.spot.isLiked = !(widget.spot.isLiked ?? false);
-                        });
-                      },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            widget.spot.isLiked ?? false
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: Colors.blue, // bouton bleu conservé
+                          ),
+                          onPressed: _toggleLike,
+                        ),
+                        Text(
+                          "${widget.spot.likesCount} likes",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
                     ),
                 ],
               ),

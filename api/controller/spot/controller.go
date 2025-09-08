@@ -19,6 +19,10 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		publicUserRoutes.PUT("/update", handler.UpdateSpot)
 		publicUserRoutes.DELETE("/delete", handler.DeleteSpot)
 		// publicUserRoutes.GET("/spot/:id", handler.GetSpotByID)
+
+		publicUserRoutes.POST("/:id/like", handler.LikeSpot)
+		publicUserRoutes.DELETE("/:id/unlike", handler.UnlikeSpot)
+		publicUserRoutes.GET("/:id/likes", handler.GetLikesCount)
 	}
 
 	// protectedUserRoutes := router.Group("/api/users")
