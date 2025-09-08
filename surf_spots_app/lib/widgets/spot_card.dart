@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/constants/colors.dart';
-import 'package:surf_spots_app/pages/spot_detail_page.dart'; // Ajoute l'import
+import 'package:surf_spots_app/pages/spot_detail_page.dart';
+import 'package:surf_spots_app/providers/spots_provider.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 
 class SpotCard extends StatefulWidget {
   final SurfSpot spot;
   final bool showLike;
+  final VoidCallback? onFavoriteToggle;
 
-  const SpotCard({super.key, required this.spot, this.showLike = true});
+  const SpotCard({
+    super.key,
+    required this.spot,
+    this.showLike = true,
+    this.onFavoriteToggle,
+  });
 
   @override
   State<SpotCard> createState() => _SpotCardState();
@@ -19,6 +27,10 @@ class _SpotCardState extends State<SpotCard> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
+        Provider.of<SpotsProvider>(
+          context,
+          listen: false,
+        ).addToHistory(widget.spot);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -32,22 +44,7 @@ class _SpotCardState extends State<SpotCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              height: 90, // Choisis une hauteur adaptée à ton design
-              child: (widget.spot.imageBase64.isNotEmpty &&
-                      widget.spot.imageBase64.first.isNotEmpty)
-                  ? Image.memory(
-                      base64Decode(widget.spot.imageBase64.first),
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    )
-                  : Container(
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Icon(Icons.image_not_supported),
-                      ),
-                    ),
-            ),
+            SizedBox(height: 90, child: _buildSpotImage()),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -73,9 +70,14 @@ class _SpotCardState extends State<SpotCard> {
                         color: AppColors.primary,
                       ),
                       onPressed: () {
-                        setState(() {
-                          widget.spot.isLiked = !(widget.spot.isLiked ?? false);
-                        });
+                        if (widget.onFavoriteToggle != null) {
+                          widget.onFavoriteToggle!();
+                        } else {
+                          setState(() {
+                            widget.spot.isLiked =
+                                !(widget.spot.isLiked ?? false);
+                          });
+                        }
                       },
                     ),
                 ],
@@ -85,5 +87,32 @@ class _SpotCardState extends State<SpotCard> {
         ),
       ),
     );
+  }
+
+  Widget _buildSpotImage() {
+    if (widget.spot.imageBase64.isEmpty ||
+        widget.spot.imageBase64.first.isEmpty) {
+      return Container(
+        color: Colors.grey[300],
+        child: const Center(child: Icon(Icons.image_not_supported)),
+      );
+    }
+
+    String base64String = widget.spot.imageBase64.first;
+
+    // Supprimer le préfixe si présent
+    if (base64String.contains(',')) {
+      base64String = base64String.split(',')[1];
+    }
+
+    try {
+      final bytes = base64Decode(base64String);
+      return Image.memory(bytes, fit: BoxFit.cover, width: double.infinity);
+    } catch (e) {
+      return Container(
+        color: Colors.grey[300],
+        child: const Center(child: Icon(Icons.image_not_supported)),
+      );
+    }
   }
 }

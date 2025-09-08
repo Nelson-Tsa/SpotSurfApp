@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/custom_input_field.dart';
 import '../widgets/return_button.dart';
 import '../services/auth_service.dart';
+import '../providers/spots_provider.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -42,13 +44,17 @@ class _LoginPageState extends State<LoginPage> {
     if (result['success']) {
       _showMessage(result['message'], Colors.green);
 
-      // Si un callback est fourni, l'utiliser (cas du FutureBuilder dans main.dart)
+      // 🔥 Rafraîchir l'historique après login
+      await Provider.of<SpotsProvider>(
+        context,
+        listen: false,
+      ).refreshAfterLogin();
+
+      // Callback si fourni
       if (widget.onLoginSuccess != null) {
         widget.onLoginSuccess!.call();
-        // Petit délai pour permettre au callback de s'exécuter
         await Future.delayed(const Duration(milliseconds: 100));
       } else {
-        // Naviguer vers l'accueil au lieu de juste pop
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } else {
@@ -90,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: MediaQuery.of(context).size.width < 600
@@ -114,14 +120,14 @@ class _LoginPageState extends State<LoginPage> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          minimumSize: Size(double.infinity, 50),
+                          minimumSize: const Size(double.infinity, 50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(999),
                           ),
                           backgroundColor: AppColors.primary,
                         ),
                         child: _isLoading
-                            ? SizedBox(
+                            ? const SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
@@ -129,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Text(
+                            : const Text(
                                 'Sign In',
                                 style: TextStyle(
                                   fontSize: 18,
@@ -150,9 +156,9 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(color: AppColors.primary),
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  const SizedBox(height: 10),
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
                     child: ReturnButton(),
                   ),
                 ],

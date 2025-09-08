@@ -1,6 +1,8 @@
 package spot
 
 import (
+	"surf_spots_app/controller/user"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -19,6 +21,14 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		publicUserRoutes.PUT("/update", handler.UpdateSpot)
 		publicUserRoutes.DELETE("/delete", handler.DeleteSpot)
 		// publicUserRoutes.GET("/spot/:id", handler.GetSpotByID)
+	}
+
+	protectedRoutes := router.Group("/api/spot")
+		protectedRoutes.Use(user.AuthRequired(db)) // <- ici, tu passes la DB
+	{
+		protectedRoutes.POST("/visited", handler.AddVisited)
+		protectedRoutes.GET("/visited", handler.GetVisited)
+		protectedRoutes.DELETE("/visited/:id", handler.DeleteVisited)
 	}
 
 	// protectedUserRoutes := router.Group("/api/users")

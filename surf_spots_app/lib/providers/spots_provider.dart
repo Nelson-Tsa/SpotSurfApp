@@ -1,33 +1,32 @@
 import 'package:flutter/foundation.dart';
 import '../models/surf_spot.dart';
 import '../services/spot_service.dart';
+import '../services/visited_service.dart';
 
 class SpotsProvider with ChangeNotifier {
   List<SurfSpot> _allSpots = [];
   List<SurfSpot> _filteredSpots = [];
+  List<SurfSpot> _history = [];
   String _searchQuery = '';
   bool _isLoading = false;
 
   // Getters
   List<SurfSpot> get allSpots => _allSpots;
   List<SurfSpot> get filteredSpots => _filteredSpots;
+  List<SurfSpot> get history => _history;
   String get searchQuery => _searchQuery;
   bool get isLoading => _isLoading;
 
-  List<SurfSpot> get favoriteSpots {
-    return _allSpots.where((spot) => spot.isLiked == true).toList();
-  }
+  List<SurfSpot> get favoriteSpots =>
+      _allSpots.where((spot) => spot.isLiked == true).toList();
 
-  List<SurfSpot> get filteredFavorites {
-    final favorites = favoriteSpots;
-    return SpotService.filterSpots(favorites, _searchQuery);
-  }
+  List<SurfSpot> get filteredFavorites =>
+      SpotService.filterSpots(favoriteSpots, _searchQuery);
 
-  // Charger tous les spots depuis l'API
+  // Charger tous les spots
   Future<void> loadSpots() async {
     _isLoading = true;
     notifyListeners();
-
     try {
       _allSpots = await SpotService.fetchAllSpots();
       _filteredSpots = List.from(_allSpots);
@@ -46,18 +45,13 @@ class SpotsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Toggle favorite (utilise ta logique existante si tu en as une)
+  // Toggle favorite
   void toggleFavorite(SurfSpot spot) {
-    final index = _allSpots.indexWhere(
-      (s) => s.name == spot.name && s.city == spot.city,
-    );
+    final index = _allSpots.indexWhere((s) => s.id == spot.id);
     if (index != -1) {
       _allSpots[index].isLiked = !(_allSpots[index].isLiked ?? false);
 
-      // Mettre à jour aussi dans la liste filtrée si le spot y existe
-      final filteredIndex = _filteredSpots.indexWhere(
-        (s) => s.name == spot.name && s.city == spot.city,
-      );
+      final filteredIndex = _filteredSpots.indexWhere((s) => s.id == spot.id);
       if (filteredIndex != -1) {
         _filteredSpots[filteredIndex].isLiked = _allSpots[index].isLiked;
       }
@@ -71,5 +65,47 @@ class SpotsProvider with ChangeNotifier {
     _searchQuery = '';
     _filteredSpots = List.from(_allSpots);
     notifyListeners();
+  }
+
+  // --- Historique ---
+
+  Future<void> loadHistory() async {
+    try {
+      _history = await VisitedService.getVisited();
+      notifyListeners();
+    } catch (e) {
+      print('Error loading visited: $e');
+    }
+  }
+
+  Future<void> addToHistory(SurfSpot spot) async {
+    try {
+      // Supprimer l'ancien doublon
+      _history.removeWhere((s) => s.id == spot.id);
+
+      final int id = int.parse(spot.id);
+      await VisitedService.addVisited(id);
+
+      // Ajouter en première position
+      _history.insert(0, spot);
+      notifyListeners();
+    } catch (e) {
+      print('Error adding to visited: $e');
+    }
+  }
+
+  Future<void> removeFromHistory(dynamic visitedId) async {
+    try {
+      final int id = visitedId is String ? int.parse(visitedId) : visitedId;
+      await VisitedService.deleteVisited(id);
+      _history.removeWhere((s) => s.id == visitedId.toString());
+      notifyListeners();
+    } catch (e) {
+      print('Error removing from visited: $e');
+    }
+  }
+
+  Future<void> refreshAfterLogin() async {
+    await loadHistory();
   }
 }

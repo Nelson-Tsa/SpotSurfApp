@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/surf_spot.dart';
 
+// Garde ta fonction existante
 Future<void> createSpotWithImage({
   required String name,
   required String city,
@@ -22,7 +23,6 @@ Future<void> createSpotWithImage({
     ..fields['gps'] = gps
     ..fields['user_id'] = userId.toString()
     ..files.add(await http.MultipartFile.fromPath('image', imagePath));
-
   var response = await request.send();
   if (response.statusCode == 200) {
     print('Spot créé avec succès');
@@ -40,7 +40,26 @@ class SpotService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => SurfSpot.fromJson(json)).toList();
+        return data
+            .map(
+              (json) => SurfSpot(
+                id: json['id'].toString(),
+                userId: json['user_id'],
+                name: json['name'],
+                city: json['city'],
+                level: int.tryParse(json['level'].toString()) ?? 1,
+                difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
+                description: json['description'],
+                imageBase64: json['images'] != null
+                    ? (json['images'] as List)
+                          .map((img) => img['image_data'] ?? '')
+                          .where((img) => img != '')
+                          .cast<String>()
+                          .toList()
+                    : [],
+              ),
+            )
+            .toList();
       } else {
         throw Exception('Failed to load spots');
       }

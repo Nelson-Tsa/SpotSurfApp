@@ -20,7 +20,7 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	}
 
 	protectedUserRoutes := router.Group("/api/users")
-	protectedUserRoutes.Use(handler.AuthRequired)
+	protectedUserRoutes.Use(AuthRequired(db))
 	{
 		protectedUserRoutes.GET("/user", handler.GetUser)
 	}

@@ -1,16 +1,15 @@
 import 'dart:convert';
-import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surf_spots_app/models/user.dart';
+import 'package:surf_spots_app/services/api_client.dart';
 
 class AuthService {
   static const String _baseUrl = 'http://10.0.2.2:4000/api/users';
   static const String _loginKey = 'is_logged_in';
 
-  static final Dio _dio = Dio()..interceptors.add(CookieManager(CookieJar()));
+  static Dio get _dio => ApiClient.dio;
 
   static Future<Map<String, dynamic>> login({
     required String email,

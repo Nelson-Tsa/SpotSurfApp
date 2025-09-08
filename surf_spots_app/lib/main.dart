@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
+import 'package:surf_spots_app/providers/spots_provider.dart';
 import 'package:surf_spots_app/pages/explore_page.dart';
 import 'package:surf_spots_app/pages/favoris_page.dart';
 import 'package:surf_spots_app/pages/profile_page.dart';
@@ -19,7 +20,10 @@ void main() async {
   await dotenv.load(fileName: ".env");
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => SpotsProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -34,7 +38,7 @@ class MyApp extends StatelessWidget {
       title: 'Surf Spots App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        scaffoldBackgroundColor: Colors.white,
       ),
       home: const HomeScreen(title: 'Surf Spots App'),
       debugShowCheckedModeBanner: false,
@@ -53,114 +57,85 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  Key _profileKey = UniqueKey(); // Clé pour forcer le rebuild
-
-  // Variable pour tracker si le panel de la carte est ouvert
+  Key _profileKey = UniqueKey();
   bool _isMapPanelOpen = false;
-
-  // On garde une clé pour accéder à MapPage et ouvrir le panel depuis le bouton +
   final GlobalKey<MapPageState> _mapPageKey = GlobalKey<MapPageState>();
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      // Si on va sur l'onglet Profile, on renouvelle la clé pour forcer le rebuild
-      if (index == 4) {
-        _profileKey = UniqueKey();
-      }
-      // Si on quitte la carte, on ferme le panel
-      if (index != 2 && _isMapPanelOpen) {
-        _isMapPanelOpen = false;
-      }
+      if (index == 4) _profileKey = UniqueKey();
+      if (index != 2 && _isMapPanelOpen) _isMapPanelOpen = false;
     });
   }
 
   void _onMapPanelStateChanged(bool isOpen) {
-    setState(() {
-      _isMapPanelOpen = isOpen;
-    });
+    setState(() => _isMapPanelOpen = isOpen);
   }
 
-  // Vérification robuste du statut d'authentification
   Future<bool> _checkAuthStatus() async {
     try {
-      // D'abord vérifier le statut local
       final localStatus = await AuthService.isLoggedIn();
       if (!localStatus) {
-        // Nettoyer le provider si pas connecté localement
-        if (mounted) {
+        if (mounted)
           Provider.of<UserProvider>(context, listen: false).clearUser();
-        }
         return false;
       }
 
-      // Ensuite vérifier avec le serveur en essayant de récupérer l'utilisateur
       final user = await AuthService.getUser();
       if (user != null) {
-        // Mettre à jour le UserProvider avec les données utilisateur
-        if (mounted) {
+        if (mounted)
           Provider.of<UserProvider>(context, listen: false).setUser(user);
-        }
-        return true; // Vraiment connecté
+        return true;
       } else {
-        // Les cookies ont expiré ou ne sont pas valides, nettoyer le statut local
         await AuthService.logout();
-        if (mounted) {
+        if (mounted)
           Provider.of<UserProvider>(context, listen: false).clearUser();
-        }
         return false;
       }
     } catch (e) {
-      // En cas d'erreur, considérer comme non connecté
       await AuthService.logout();
-      if (mounted) {
+      if (mounted)
         Provider.of<UserProvider>(context, listen: false).clearUser();
-      }
       return false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Liste des pages utilisées par la barre de navigation
     final List<Widget> pages = [
-      // Page 0: Accueil
-      const Column(
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Barre de recherche en haut
           SearchBarSpot(),
-          SizedBox(height: 0.5),
-          // Carrousel
+          const SizedBox(height: 0.5),
           Carroussel(),
-          SizedBox(height: 0.3),
-          // Grille des spots
-          Expanded(child: GalleryPage()),
+          const SizedBox(height: 0.3),
+          Expanded(child: GalleryPage(showHistory: true)),
         ],
       ),
-      // Autres pages
       const ExplorePage(),
       MapPage(key: _mapPageKey, onPanelStateChanged: _onMapPanelStateChanged),
       const FavorisPage(),
-      // Page Profile conditionnelle avec vérification robuste
       FutureBuilder<bool>(
-        key: _profileKey, // Clé pour forcer le rebuild
+        key: _profileKey,
         future: _checkAuthStatus(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           final isLoggedIn = snapshot.data ?? false;
-
           if (isLoggedIn) {
             return const ProfilePage();
           } else {
             return LoginPage(
-              onLoginSuccess: () {
-                setState(() {
-                  _profileKey = UniqueKey(); // Forcer le rebuild
-                });
+              onLoginSuccess: () async {
+                final spotsProvider = Provider.of<SpotsProvider>(
+                  context,
+                  listen: false,
+                );
+                await spotsProvider.refreshAfterLogin();
+                setState(() => _profileKey = UniqueKey());
               },
             );
           }
@@ -170,7 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: Container(
-        // Fond d'écran sauf sur la page 4
         decoration: _selectedIndex == 4
             ? null
             : const BoxDecoration(
@@ -188,7 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-      // Bouton flottant pour ajouter un spot sur la map
       floatingActionButton:
           (_selectedIndex == 2 && _isMapPanelOpen) || _selectedIndex == 4
           ? null
@@ -198,9 +171,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   _mapPageKey.currentState?.openAddSpotPanel();
                 } else {
                   setState(() => _selectedIndex = 2);
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _mapPageKey.currentState?.openAddSpotPanel();
-                  });
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _mapPageKey.currentState?.openAddSpotPanel(),
+                  );
                 }
               },
               tooltip: 'Ajouter un spot',

@@ -8,7 +8,7 @@ class SurfSpot {
   final List<String> imageBase64;
   final int userId; // ou creatorId selon ton choix
 
-  bool? isLiked; // <-- Ajoute ce champ
+  bool? isLiked; // <-- Ajouté
 
   SurfSpot({
     required this.id,
@@ -19,12 +19,12 @@ class SurfSpot {
     required this.difficulty,
     required this.imageBase64,
     required this.userId,
-    this.isLiked, // <-- Ajoute dans le constructeur
+    this.isLiked,
   });
 
   factory SurfSpot.fromJson(Map<String, dynamic> json) {
     return SurfSpot(
-      id: json['id'],
+      id: json['id'].toString(),
       name: json['name'],
       description: json['description'],
       city: json['city'],
@@ -33,11 +33,13 @@ class SurfSpot {
       imageBase64: json['images'] != null
           ? (json['images'] as List)
                 .map((img) => img['image_data'] ?? '')
-                .where((img) => img != null && img != '')
+                .where((img) => img != '')
                 .cast<String>()
                 .toList()
           : [],
-      userId: json['userId'] ?? '', // <-- Assurez-vous de gérer ce champ
+      userId: (json['user_id'] is int)
+          ? json['user_id']
+          : int.tryParse(json['user_id'].toString()) ?? 0,
     );
   }
 }
