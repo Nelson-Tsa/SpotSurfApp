@@ -64,6 +64,30 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   // Simplement afficher le profil - la logique isLoggedIn est gérée dans main.dart
+  //   return Scaffold(
+  //     body: SingleChildScrollView(
+  //       child: Column(
+  //         children: [
+  //           _buildHeader(),
+  //           const SizedBox(height: 50),
+  //           _buildProfileInfo(),
+  //           const SizedBox(height: 30),
+  //           _buildProfileSettings(),
+  //           const SizedBox(height: 20),
+  //           const Carroussel(),
+  //           const SizedBox(height: 30),
+  //           _buildLogoutSection(context),
+  //           const SizedBox(height: 20),
+  //           _buildFooterLinks(),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildHeader() {
     return Container(
       color: AppColors.primary,
@@ -183,7 +207,6 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () async {
                 await AuthService.logout();
                 _refreshProfile();
-                Navigator.pushReplacementNamed(context, '/login');
               },
               child: const Text("Log Out", style: TextStyle(color: Colors.red)),
             ),

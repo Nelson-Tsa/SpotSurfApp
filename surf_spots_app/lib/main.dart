@@ -81,6 +81,29 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Vérification robuste du statut d'authentification
+  Future<bool> _checkAuthStatus() async {
+    try {
+      // D'abord vérifier le statut local
+      final localStatus = await AuthService.isLoggedIn();
+      if (!localStatus) return false;
+
+      // Ensuite vérifier avec le serveur en essayant de récupérer l'utilisateur
+      final user = await AuthService.getUser();
+      if (user != null) {
+        return true; // Vraiment connecté
+      } else {
+        // Les cookies ont expiré ou ne sont pas valides, nettoyer le statut local
+        await AuthService.logout();
+        return false;
+      }
+    } catch (e) {
+      // En cas d'erreur, considérer comme non connecté
+      await AuthService.logout();
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Liste des pages utilisées par la barre de navigation
@@ -103,10 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
       const ExplorePage(),
       MapPage(key: _mapPageKey, onPanelStateChanged: _onMapPanelStateChanged),
       const FavorisPage(),
-      // Page Profile conditionnelle
+      // Page Profile conditionnelle avec vérification robuste
       FutureBuilder<bool>(
         key: _profileKey, // Clé pour forcer le rebuild
-        future: AuthService.isLoggedIn(),
+        future: _checkAuthStatus(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
