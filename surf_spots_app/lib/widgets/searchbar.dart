@@ -48,6 +48,7 @@ class _SearchBarSpotState extends State<SearchBarSpot> {
                       context,
                       listen: false,
                     ).clearSearch();
+                    setState(() {}); // Pour retirer le bouton clear
                   },
                 )
               : null,
