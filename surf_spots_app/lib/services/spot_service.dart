@@ -1,4 +1,19 @@
 import 'package:http/http.dart' as http;
+import 'package:surf_spots_app/services/http_client.dart';
+
+class SpotService {
+  // Récupère les spots de l'utilisateur connecté
+  static Future<List<dynamic>> getMySpots() async {
+    try {
+      final response = await HttpClient.instance.get(
+        'http://10.0.2.2:4000/api/spot/my-spots',
+      );
+      return response.data ?? [];
+    } catch (e) {
+      return [];
+    }
+  }
+}
 
 Future<void> createSpotWithImage({
   required String name,
@@ -23,8 +38,8 @@ Future<void> createSpotWithImage({
 
   var response = await request.send();
   if (response.statusCode == 200) {
-    print('Spot créé avec succès');
+    // Spot créé avec succès
   } else {
-    print('Erreur lors de la création du spot');
+    // Erreur lors de la création du spot
   }
 }

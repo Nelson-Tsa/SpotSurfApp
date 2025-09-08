@@ -420,7 +420,6 @@ class MapPageState extends State<MapPage> {
         });
       }
     } catch (e) {
-      print('Erreur lors de la sélection des images : $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la sélection des images')),
       );

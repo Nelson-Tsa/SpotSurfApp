@@ -1,6 +1,8 @@
 package spot
 
 import (
+	"surf_spots_app/controller/user"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -11,6 +13,7 @@ type SpotHandler struct {
 
 func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 	handler := &SpotHandler{DB: db}
+	userHandler := &user.UserHandler{DB: db}
 
 	publicUserRoutes := router.Group("/api/spot")
 	{
@@ -18,13 +21,11 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		publicUserRoutes.GET("/spots", handler.GetAllSpots)
 		publicUserRoutes.PUT("/update", handler.UpdateSpot)
 		publicUserRoutes.DELETE("/delete", handler.DeleteSpot)
-		// publicUserRoutes.GET("/spot/:id", handler.GetSpotByID)
 	}
 
-	// protectedUserRoutes := router.Group("/api/users")
-	// protectedUserRoutes.Use(middleware.AuthMiddleware())
-	// {
-	// 	protectedUserRoutes.GET("/profile", controller.GetProfile)
-	// 	protectedUserRoutes.PUT("/profile", controller.UpdateProfile)
-	// }
+	protectedUserRoutes := router.Group("/api/spot")
+	protectedUserRoutes.Use(userHandler.AuthRequired)
+	{
+		protectedUserRoutes.GET("/my-spots", handler.GetMySpots)
+	}
 }

@@ -177,12 +177,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   Widget build(BuildContext context) {
     final currentUser = Provider.of<UserProvider>(context).currentUser;
 
-    print('currentUser: ${currentUser?.id}, role: ${currentUser?.role}');
-    print('spot.userId: ${_spot.userId}');
-    print(
-      'Affiche bouton: ${currentUser != null && (currentUser.role == 'admin' || currentUser.id == _spot.userId)}',
-    );
-
     return Scaffold(
       body: SlidingUpPanel(
         panel: Padding(
