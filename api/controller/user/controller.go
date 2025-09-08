@@ -18,12 +18,10 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		publicUserRoutes.POST("/login", handler.LoginUsers)
 		publicUserRoutes.POST("/logout", Logout)
 	}
-	
 
-	// protectedUserRoutes := router.Group("/api/users")
-	// protectedUserRoutes.Use(middleware.AuthMiddleware())
-	// {
-	// 	protectedUserRoutes.GET("/profile", controller.GetProfile)
-	// 	protectedUserRoutes.PUT("/profile", controller.UpdateProfile)
-	// }
+	protectedUserRoutes := router.Group("/api/users")
+	protectedUserRoutes.Use(handler.AuthRequired)
+	{
+		protectedUserRoutes.GET("/user", handler.GetUser)
+	}
 }
