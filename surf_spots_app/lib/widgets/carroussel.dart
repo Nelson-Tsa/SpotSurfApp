@@ -50,27 +50,34 @@ class _CarrousselState extends State<Carroussel> {
     print('Body: ${response.body}');
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final List<dynamic> data = json.decode(response.body);
+      List<SurfSpot> spotsList = data
+          .map(
+            (json) => SurfSpot(
+              id: json['id'].toString(),
+              userId: json['user_id'],
+              name: json['name'],
+              city: json['city'],
+              level: int.tryParse(json['level'].toString()) ?? 1,
+              difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
+              description: json['description'],
+              imageBase64: json['images'] != null
+                  ? (json['images'] as List)
+                        .map((img) => img['image_data'] ?? '')
+                        .where((img) => img != '')
+                        .cast<String>()
+                        .toList()
+                  : [],
+            ),
+          )
+          .toList();
+
+      // Garde seulement les 10 derniers spots
+      if (spotsList.length > 10) {
+        spotsList = spotsList.sublist(spotsList.length - 10);
+      }
+
       setState(() {
-        _spots = data
-            .map(
-              (json) => SurfSpot(
-                id: json['id'].toString(), // Ajoute cette ligne
-                userId: json['user_id'], // Ajoute cette ligne
-                name: json['name'],
-                city: json['city'],
-                level: int.tryParse(json['level'].toString()) ?? 1,
-                difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
-                description: json['description'],
-                imageBase64: json['images'] != null
-                    ? (json['images'] as List)
-                          .map((img) => img['image_data'] ?? '')
-                          .where((img) => img != '')
-                          .cast<String>()
-                          .toList()
-                    : [],
-              ),
-            )
-            .toList();
+        _spots = spotsList;
         _totalPages = (_spots.length / 2).ceil();
         isLoading = false;
       });
