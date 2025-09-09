@@ -23,26 +23,53 @@ class _SpotCardState extends State<SpotCard> {
   }
 
   // Charger le nombre de likes depuis le backend
-Future<void> _loadLikes() async {
-  final spotId= int.parse(widget.spot.id);
-  final count = await LikeService.getLikesCount(spotId);
-  final userId = 3; // provisoire → à remplacer par l'utilisateur connecté
-  final liked = await LikeService.toggleLike(spotId);
+  Future<void> _loadLikes() async {
+    try {
+      final spotId = int.parse(widget.spot.id);
+      final count = await LikeService.getLikesCount(spotId);
 
-  setState(() {
-    widget.spot.likesCount = count;
-    widget.spot.isLiked = liked;
-  });
-}
-
+      if (mounted) {
+        setState(() {
+          widget.spot.likesCount = count;
+          // On ne fait pas de toggleLike ici, juste charger le count
+          widget.spot.isLiked ??= false; // Initialize à false si null
+        });
+      }
+    } catch (e) {
+      print('Erreur lors du chargement des likes: $e');
+    }
+  }
 
   Future<void> _toggleLike() async {
-    final userId = 3; // provisoire → récupérer depuis Auth
-    bool success;
-    bool isLiked= false;
+    try {
+      final spotId = int.parse(widget.spot.id);
+      final newLikedState = await LikeService.toggleLike(spotId);
 
-    final spotId= int.parse(widget.spot.id);
-    isLiked= await LikeService.toggleLike(spotId);
+      if (mounted) {
+        setState(() {
+          widget.spot.isLiked = newLikedState;
+          // Mettre à jour le compteur selon le nouvel état
+          if (newLikedState) {
+            widget.spot.likesCount += 1;
+          } else {
+            widget.spot.likesCount = (widget.spot.likesCount > 0)
+                ? widget.spot.likesCount - 1
+                : 0;
+          }
+        });
+      }
+    } catch (e) {
+      print('Erreur lors du toggle like: $e');
+      // Afficher un message à l'utilisateur si non connecté
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour liker un spot'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -64,7 +91,8 @@ Future<void> _loadLikes() async {
           children: [
             SizedBox(
               height: 90,
-              child: (widget.spot.imageBase64.isNotEmpty &&
+              child:
+                  (widget.spot.imageBase64.isNotEmpty &&
                       widget.spot.imageBase64.first.isNotEmpty)
                   ? Image.memory(
                       base64Decode(widget.spot.imageBase64.first),
@@ -103,9 +131,19 @@ Future<void> _loadLikes() async {
                             widget.spot.isLiked ?? false
                                 ? Icons.favorite
                                 : Icons.favorite_border,
-                            color: Colors.blue,
+                            color: widget.spot.isLiked ?? false
+                                ? Colors.blue
+                                : Colors.grey,
                           ),
                           onPressed: _toggleLike,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${widget.spot.likesCount}',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
