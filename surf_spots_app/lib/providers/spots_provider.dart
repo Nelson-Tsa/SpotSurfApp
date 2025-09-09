@@ -93,6 +93,20 @@ class SpotsProvider with ChangeNotifier {
 
       _history = uniqueMap.values.toList().reversed.toList();
 
+      // --- Limiter à 20 spots (clean automatique à la reconnexion) ---
+      if (_history.length > 20) {
+        final toRemove = _history.sublist(20); // les plus vieux
+        _history = _history.sublist(0, 20);
+
+        for (var spot in toRemove) {
+          final removedId = int.tryParse(spot.id);
+          if (removedId != null) {
+            await VisitedService.deleteVisited(removedId);
+            print("🗑️ Cleaned old spot from DB on load: ${spot.id}");
+          }
+        }
+      }
+
       // Associer les images correctes des spots principaux
       _history = _history.map((spot) {
         final original = _allSpots.firstWhere(
@@ -107,6 +121,8 @@ class SpotsProvider with ChangeNotifier {
           ? SpotService.filterSpots(_history, _searchQuery)
           : List.from(_history);
 
+      print("✅ History loaded with ${_history.length} spots");
+
       notifyListeners();
     } catch (e) {
       print('Error loading visited: $e');
@@ -117,10 +133,25 @@ class SpotsProvider with ChangeNotifier {
     try {
       final int id = int.parse(spot.id);
       await VisitedService.addVisited(id);
+      print("➕ Added spot to visited: ${spot.id}");
 
       // Supprimer l'ancienne entrée si déjà présente
       _history.removeWhere((s) => s.id == spot.id);
       _history.insert(0, spot);
+
+      // --- Limiter à 20 spots (en mémoire et en DB) ---
+      if (_history.length > 20) {
+        final removedSpot = _history.removeLast(); // supprime le plus ancien
+        final removedId = int.tryParse(removedSpot.id);
+        if (removedId != null) {
+          await VisitedService.deleteVisitedBySpot(
+            removedId,
+          ); // <- ici tu appelles la nouvelle route
+          print(
+            "🗑️ Removed oldest spot to keep history at 5: ${removedSpot.id}",
+          );
+        }
+      }
 
       // Associer l'image correcte si disponible
       final original = _allSpots.firstWhere(
@@ -133,6 +164,8 @@ class SpotsProvider with ChangeNotifier {
       _filteredHistory = _searchQuery.isNotEmpty
           ? SpotService.filterSpots(_history, _searchQuery)
           : List.from(_history);
+
+      print("📜 Current history length: ${_history.length}");
 
       notifyListeners();
     } catch (e) {
@@ -149,6 +182,8 @@ class SpotsProvider with ChangeNotifier {
       _filteredHistory = _searchQuery.isNotEmpty
           ? SpotService.filterSpots(_history, _searchQuery)
           : List.from(_history);
+
+      print("🗑️ Manually removed spot from history: $id");
 
       notifyListeners();
     } catch (e) {

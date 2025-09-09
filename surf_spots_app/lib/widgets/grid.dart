@@ -24,7 +24,12 @@ class _GalleryPageState extends State<GalleryPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<SpotsProvider>(context, listen: false);
-      await provider.loadSpots();
+
+      // Charger les spots uniquement si on est dans les favoris ou l'historique
+      if (widget.showOnlyFavorites || widget.showHistory) {
+        await provider.loadSpots();
+      }
+
       if (widget.showHistory) {
         await provider.loadHistory();
       }
@@ -39,15 +44,42 @@ class _GalleryPageState extends State<GalleryPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
+        // Déterminer les spots à afficher
         List<SurfSpot> spotsToShow;
+
         if (widget.showHistory) {
           spotsToShow = spotsProvider.history;
         } else if (widget.showOnlyFavorites) {
           spotsToShow = spotsProvider.filteredFavorites;
         } else {
+          // Explore page : n'affiche la grid que si une recherche est tapée
+          if (spotsProvider.searchQuery.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(
+                    Icons.search,
+                    size: 64,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Tapez dans la barre de recherche pour afficher des spots',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
           spotsToShow = spotsProvider.filteredSpots;
         }
 
+        // Si aucun spot trouvé après filtre
         if (spotsToShow.isEmpty) {
           return Center(
             child: Column(
@@ -58,7 +90,7 @@ class _GalleryPageState extends State<GalleryPage> {
                       ? Icons.favorite_border
                       : Icons.search_off,
                   size: 64,
-                  color: Colors.grey,
+                  color: const Color.fromARGB(255, 255, 255, 255),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -68,10 +100,11 @@ class _GalleryPageState extends State<GalleryPage> {
                             : 'Aucun favori trouvé pour "${spotsProvider.searchQuery}"'
                       : widget.showHistory
                       ? 'Aucun spot dans votre historique'
-                      : spotsProvider.searchQuery.isEmpty
-                      ? 'Aucun spot trouvé'
                       : 'Aucun spot trouvé pour "${spotsProvider.searchQuery}"',
-                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -79,6 +112,7 @@ class _GalleryPageState extends State<GalleryPage> {
           );
         }
 
+        // Affichage de la grid
         return Container(
           margin: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 12.0),
           decoration: BoxDecoration(

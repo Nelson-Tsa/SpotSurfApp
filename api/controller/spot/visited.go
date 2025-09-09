@@ -64,3 +64,20 @@ func (h *SpotHandler) DeleteVisited(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"message": "Visited entry deleted"})
 }
+
+
+func (h *SpotHandler) DeleteVisitedBySpot(c *gin.Context) {
+    user := c.MustGet("user").(model.Users)
+    userID := user.ID
+
+    spotID := c.Param("spotId")
+
+    if err := h.DB.
+        Where("spot_id = ? AND user_id = ?", spotID, userID).
+        Delete(&model.Visited{}).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Visited entry deleted by spot_id"})
+}

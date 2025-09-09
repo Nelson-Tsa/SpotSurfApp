@@ -29,6 +29,7 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		protectedRoutes.POST("/visited", handler.AddVisited)
 		protectedRoutes.GET("/visited", handler.GetVisited)
 		protectedRoutes.DELETE("/visited/:id", handler.DeleteVisited)
+		protectedRoutes.DELETE("/visited/spot/:spotId", handler.DeleteVisitedBySpot)
 	}
 
 	// protectedUserRoutes := router.Group("/api/users")

@@ -40,4 +40,12 @@ class VisitedService {
       throw Exception("Failed to delete visited spot: ${response.data}");
     }
   }
+
+  // Supprimer un spot visité par spotId pour l'utilisateur connecté
+  static Future<void> deleteVisitedBySpot(int spotId) async {
+    final response = await _dio.delete("$baseUrl/visited/spot/$spotId");
+    if (response.statusCode != 200) {
+      throw Exception("Failed to delete visited spot: ${response.data}");
+    }
+  }
 }
