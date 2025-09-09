@@ -23,34 +23,26 @@ class _SpotCardState extends State<SpotCard> {
   }
 
   // Charger le nombre de likes depuis le backend
-  Future<void> _loadLikes() async {
-    final count = await getLikes(widget.spot.id);
-    setState(() {
-      widget.spot.likesCount = count;
-    });
-  }
+Future<void> _loadLikes() async {
+  final spotId= int.parse(widget.spot.id);
+  final count = await LikeService.getLikesCount(spotId);
+  final userId = 3; // provisoire → à remplacer par l'utilisateur connecté
+  final liked = await LikeService.toggleLike(spotId);
+
+  setState(() {
+    widget.spot.likesCount = count;
+    widget.spot.isLiked = liked;
+  });
+}
+
 
   Future<void> _toggleLike() async {
-    final userId = 3; // ⚠️ provisoire → récupérer depuis Auth
+    final userId = 3; // provisoire → récupérer depuis Auth
     bool success;
+    bool isLiked= false;
 
-    if (widget.spot.isLiked == true) {
-      success = await unlikeSpot(widget.spot.id, userId);
-      if (success) {
-        setState(() {
-          widget.spot.isLiked = false;
-          widget.spot.likesCount = (widget.spot.likesCount ?? 1) - 1;
-        });
-      }
-    } else {
-      success = await likeSpot(widget.spot.id, userId);
-      if (success) {
-        setState(() {
-          widget.spot.isLiked = true;
-          widget.spot.likesCount = (widget.spot.likesCount ?? 0) + 1;
-        });
-      }
-    }
+    final spotId= int.parse(widget.spot.id);
+    isLiked= await LikeService.toggleLike(spotId);
   }
 
   @override
@@ -111,13 +103,9 @@ class _SpotCardState extends State<SpotCard> {
                             widget.spot.isLiked ?? false
                                 ? Icons.favorite
                                 : Icons.favorite_border,
-                            color: Colors.blue, // bouton bleu conservé
+                            color: Colors.blue,
                           ),
                           onPressed: _toggleLike,
-                        ),
-                        Text(
-                          "${widget.spot.likesCount} likes",
-                          style: const TextStyle(fontSize: 14),
                         ),
                       ],
                     ),

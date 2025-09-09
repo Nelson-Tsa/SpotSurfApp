@@ -1,56 +1,36 @@
 package spot
 
 import (
-	"net/http"
+
 	"strconv"
 	"surf_spots_app/model"
 
 	"github.com/gin-gonic/gin"
 )
 
-// LikeSpot ajoute un like
-func (h *SpotHandler) LikeSpot(c *gin.Context) {
-	spotID, _ := strconv.Atoi(c.Param("id"))
-	userID, _ := strconv.Atoi(c.Query("user_id")) // ⚠️ provisoire, à remplacer par JWT plus tard
+func (h *SpotHandler) ToggleLike(ctx *gin.Context) {
+    user := ctx.MustGet("user").(model.Users)
+    spotID, _ := strconv.Atoi(ctx.Param("id"))
 
-	var existing model.Likes
-	if err := h.DB.Where("spot_id = ? AND user_id = ?", spotID, userID).First(&existing).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Already liked"})
-		return
-	}
+    var like model.Likes
+    err := h.DB.Where("user_id = ? AND spot_id = ?", user.ID, spotID).First(&like).Error
 
-	newLike := model.Likes{
-		SpotID: spotID,
-		UserID: userID,
-	}
-
-	if err := h.DB.Create(&newLike).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not like spot"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Spot liked"})
+    if err != nil {
+        // Pas de like -> créer
+        h.DB.Create(&model.Likes{UserID: int64(user.ID), SpotID: int64(spotID)})
+        ctx.JSON(200, gin.H{"liked": true})
+    } else {
+        // Like existe -> supprimer
+        h.DB.Delete(&like)
+        ctx.JSON(200, gin.H{"liked": false})
+    }
 }
 
-// UnlikeSpot supprime un like
-func (h *SpotHandler) UnlikeSpot(c *gin.Context) {
-	spotID, _ := strconv.Atoi(c.Param("id"))
-	userID, _ := strconv.Atoi(c.Query("user_id"))
-
-	if err := h.DB.Where("spot_id = ? AND user_id = ?", spotID, userID).Delete(&model.Likes{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not unlike"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Spot unliked"})
-}
-
-// GetLikesCount retourne le nombre de likes
-func (h *SpotHandler) GetLikesCount(c *gin.Context) {
-	spotID, _ := strconv.Atoi(c.Param("id"))
-	var count int64
-
-	h.DB.Model(&model.Likes{}).Where("spot_id = ?", spotID).Count(&count)
-
-	c.JSON(http.StatusOK, gin.H{"likes": count})
+func (h *SpotHandler) GetLikesCount(ctx *gin.Context) {
+    spotID, _ := strconv.Atoi(ctx.Param("id"))
+    
+    var count int64
+    h.DB.Model(&model.Likes{}).Where("spot_id = ?", spotID).Count(&count)
+    
+    ctx.JSON(200, gin.H{"count": count})
 }

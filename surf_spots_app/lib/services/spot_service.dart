@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -31,27 +33,24 @@ Future<void> createSpotWithImage({
   }
 }
 
-Future<bool> likeSpot(String spotId, int userId) async {
-  final response = await http.post(
-    Uri.parse('http://10.0.2.2:4000/api/spot/$spotId/like?user_id=$userId'),
-  );
-  return response.statusCode == 200;
-}
-
-Future<bool> unlikeSpot(String spotId, int userId) async {
-  final response = await http.delete(
-    Uri.parse('http://10.0.2.2:4000/api/spot/$spotId/unlike?user_id=$userId'),
-  );
-  return response.statusCode == 200;
-}
-
-Future<int> getLikes(String spotId) async {
-  final response =
-      await http.get(Uri.parse('http://10.0.2.2:4000/api/spot/$spotId/likes'));
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    return data['likes'] ?? 0;
+class LikeService {
+  static Future<bool> toggleLike(int spotId) async {
+    try {
+      final response = await http.post(Uri.parse('/api/spot/like/$spotId'));
+      final data= jsonDecode(response.body);
+      return data['liked'] ?? false;
+    } catch (e) {
+      return false;
+    }
   }
-  return 0;
+
+  static Future<int> getLikesCount(int spotId) async {
+    try {
+      final response = await http.get(Uri.parse('/api/spot/like/$spotId'));
+      final data= jsonDecode(response.body);
+      return data['count'] ?? 0;
+    } catch (e) {
+      return 0;
+    }
+  }
 }
