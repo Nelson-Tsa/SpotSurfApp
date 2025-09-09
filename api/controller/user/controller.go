@@ -6,23 +6,23 @@ import (
 )
 
 type UserHandler struct {
-	DB *gorm.DB
+    DB *gorm.DB
 }
 
 func UserRoutes(router *gin.Engine, db *gorm.DB) {
-	handler := &UserHandler{DB: db}
+    handler := &UserHandler{DB: db}
 
-	publicUserRoutes := router.Group("/api/users")
-	{
-		publicUserRoutes.POST("/register", handler.RegisterUsers)
-		publicUserRoutes.POST("/login", handler.LoginUsers)
-		publicUserRoutes.POST("/logout", Logout)
-	}
+    publicUserRoutes := router.Group("/api/users")
+    {
+        publicUserRoutes.POST("/register", handler.RegisterUsers)
+        publicUserRoutes.POST("/login", handler.LoginUsers)
+        publicUserRoutes.POST("/logout", Logout)
+    }
 
-	protectedUserRoutes := router.Group("/api/users")
-	protectedUserRoutes.Use(AuthRequired(db))
-	{
-		protectedUserRoutes.GET("/user", handler.GetUser)
-		protectedUserRoutes.PUT("/user", handler.UpdateUser)
-	}
+    protectedUserRoutes := router.Group("/api/users")
+    protectedUserRoutes.Use(handler.AuthRequired)
+    {
+        protectedUserRoutes.GET("/user", handler.GetUser)
+        protectedUserRoutes.PUT("/user", handler.UpdateUser)
+    }
 }

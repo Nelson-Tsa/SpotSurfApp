@@ -39,7 +39,7 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 	}
 
 	protectedRoutes := router.Group("/api/spot")
-		protectedRoutes.Use(user.AuthRequired(db)) // <- ici, tu passes la DB
+		protectedRoutes.Use(userHandler.AuthRequired) // <- ici, tu passes la DB
 	{
 		protectedRoutes.POST("/visited", handler.AddVisited)
 		protectedRoutes.GET("/visited", handler.GetVisited)
