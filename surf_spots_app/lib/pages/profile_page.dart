@@ -4,6 +4,7 @@ import 'package:surf_spots_app/widgets/user_spots_carousel.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 import 'package:surf_spots_app/models/user.dart';
 import 'package:surf_spots_app/main.dart';
+import 'package:surf_spots_app/pages/update_profile_page.dart';
 import '../services/auth_service.dart';
 import '../providers/user_provider.dart';
 
@@ -16,6 +17,20 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   Key _futureKey = UniqueKey();
+
+  void _navigateToUpdateProfile(User user) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => UpdateProfilePage(user: user)),
+    );
+
+    // Si l'utilisateur a mis à jour ses infos, on rafraîchit la page
+    if (result == true) {
+      setState(() {
+        _futureKey = UniqueKey();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 50),
           _buildProfileInfo(user),
           const SizedBox(height: 30),
-          _buildProfileSettings(),
+          _buildProfileSettings(user),
           const SizedBox(height: 20),
           const UserSpotsCarousel(),
           const SizedBox(height: 30),
@@ -142,7 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileSettings() {
+  Widget _buildProfileSettings(User user) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -157,7 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => _navigateToUpdateProfile(user),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,

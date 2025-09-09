@@ -127,4 +127,31 @@ class AuthService {
       return null;
     }
   }
+
+  static Future<Map<String, dynamic>> updateUser({
+    required String name,
+    required String email,
+  }) async {
+    try {
+      final response = await HttpClient.instance.put(
+        '$_baseUrl/user',
+        data: {'name': name, 'email': email},
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Utilisateur mis à jour avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': response.data['error'] ?? 'Erreur lors de la mise à jour',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de réseau'};
+    }
+  }
 }
