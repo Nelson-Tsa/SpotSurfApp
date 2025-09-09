@@ -10,7 +10,8 @@ class AuthService {
   static const String _baseUrl = 'http://10.0.2.2:4000/api/users';
   static const String _loginKey = 'is_logged_in';
 
-  static final Dio _dio = Dio()..interceptors.add(CookieManager(CookieJar()));
+  static final Dio _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:4000'))
+    ..interceptors.add(CookieManager(CookieJar()));
 
   static Future<Map<String, dynamic>> login({
     required String email,
@@ -18,7 +19,7 @@ class AuthService {
   }) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl/login',
+        '/api/users/login',
         data: {'email': email, 'password': password},
       );
 
@@ -98,7 +99,7 @@ class AuthService {
   static Future<User?> getUser() async {
     try {
       print('🔄 Appel de getUser() avec URL: $_baseUrl/user');
-      final response = await _dio.get('$_baseUrl/user');
+      final response = await _dio.get('/api/users/user');
 
       print('📡 Status Code: ${response.statusCode}');
       print('📊 Response Data: ${response.data}');

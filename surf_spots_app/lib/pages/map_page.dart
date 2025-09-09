@@ -9,6 +9,7 @@ import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/pages/spot_detail_page.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
+import 'package:surf_spots_app/services/auth_service.dart';
 import 'dart:io';
 
 class MapPage extends StatefulWidget {
@@ -333,6 +334,8 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _validateAndAddSpot() async {
+    print('🚀 Starting spot validation and creation...');
+
     if (_isSubmitting) return;
 
     final currentUser = Provider.of<UserProvider>(
@@ -354,34 +357,41 @@ class MapPageState extends State<MapPage> {
         _isSubmitting = true;
       });
       // 1. Envoie le spot au backend
-      final spotResponse = await http.post(
-        Uri.parse('http://10.0.2.2:4000/api/spot/create'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final spotResponse = await AuthService.authenticatedDio.post(
+        '/api/spot/create',
+        data: {
           'name': _spotController.text,
           'city': _villeController.text,
           'description': _descriptionController.text,
           'level': _selectedNiveau,
           'difficulty': _selectedDifficulte,
           'gps': "${_pickedLocation!.latitude},${_pickedLocation!.longitude}",
-          'user_id': currentUserId, // <-- ici
-        }),
+        },
       );
 
       if (spotResponse.statusCode == 201) {
-        final spotData = jsonDecode(spotResponse.body);
+        final spotData = spotResponse.data;
         final spotId = spotData['id']; // récupère l'ID du spot créé
+
+        print('🎯 Spot created successfully with ID: $spotId');
+        print('📷 Number of images to upload: ${_images.length}');
 
         // 2. Envoie chaque image au backend
         for (var image in _images) {
           final bytes = await image.readAsBytes();
           final base64Image = base64Encode(bytes);
 
-          await http.post(
-            Uri.parse('http://10.0.2.2:4000/api/spot/images'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'spot_id': spotId, 'image_data': base64Image}),
-          );
+          try {
+            print('📸 Uploading image for spot $spotId...');
+            final imageResponse = await AuthService.authenticatedDio.post(
+              '/api/spot/images',
+              data: {'spot_id': spotId, 'image_data': base64Image},
+            );
+            print('✅ Image uploaded successfully: ${imageResponse.statusCode}');
+          } catch (e) {
+            print('❌ Error uploading image: $e');
+            // Continue with other images even if one fails
+          }
         }
 
         // Recharge les markers depuis la BDD
@@ -414,6 +424,9 @@ class MapPageState extends State<MapPage> {
         );
       }
     } else {
+      setState(() {
+        _isSubmitting = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(

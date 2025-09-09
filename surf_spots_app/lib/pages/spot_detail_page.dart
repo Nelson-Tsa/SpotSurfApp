@@ -33,6 +33,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   List<XFile> _images = [];
   List<String> _existingImagesBase64 = [];
   bool _isSubmitting = false;
+  bool _showPhotoError = false;
 
   @override
   void initState() {
@@ -212,117 +213,216 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 8,
-            right: 8,
-            top: 16,
-          ),
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ContainerForms(
-                      formKey: _formKey,
-                      gpsController: _gpsController,
-                      villeController: _villeController,
-                      spotController: _spotController,
-                      descriptionController: _descriptionController,
-                      onPickLocation: () {},
-                      selectedNiveau: _selectedNiveau,
-                      selectedDifficulte: _selectedDifficulte,
-                      onNiveauChanged: (val) {
-                        setModalState(() => _selectedNiveau = val);
-                      },
-                      onDifficulteChanged: (val) {
-                        setModalState(() => _selectedDifficulte = val);
-                      },
-                      onValidate: () async {
-                        if (!_formKey.currentState!.validate() ||
-                            _selectedNiveau == null ||
-                            _selectedDifficulte == null)
-                          return;
-                        setModalState(() => _isSubmitting = true);
+        return DraggableScrollableSheet(
+          initialChildSize: 0.9,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Barre grise pour indiquer qu'on peut glisser
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20.0, bottom: 16.0),
+                    child: Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Titre du formulaire
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Modifier le spot',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Contenu du formulaire
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: StatefulBuilder(
+                        builder: (context, setModalState) {
+                          return SingleChildScrollView(
+                            controller: scrollController,
+                            child: Column(
+                              children: [
+                                // Message d'erreur pour les photos
+                                if (_showPhotoError)
+                                  Container(
+                                    width: double.infinity,
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade100,
+                                      border: Border.all(color: Colors.orange),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: Colors.orange.shade700,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Merci d\'ajouter au moins une photo',
+                                            style: TextStyle(
+                                              color: Colors.orange.shade700,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ContainerForms(
+                                  formKey: _formKey,
+                                  gpsController: _gpsController,
+                                  villeController: _villeController,
+                                  spotController: _spotController,
+                                  descriptionController: _descriptionController,
+                                  onPickLocation: () {},
+                                  selectedNiveau: _selectedNiveau,
+                                  selectedDifficulte: _selectedDifficulte,
+                                  onNiveauChanged: (val) {
+                                    setModalState(() => _selectedNiveau = val);
+                                  },
+                                  onDifficulteChanged: (val) {
+                                    setModalState(
+                                      () => _selectedDifficulte = val,
+                                    );
+                                  },
+                                  isGpsEditable: false,
+                                  onValidate: () async {
+                                    if (!_formKey.currentState!.validate() ||
+                                        _selectedNiveau == null ||
+                                        _selectedDifficulte == null) {
+                                      return;
+                                    }
 
-                        // Ajoute les nouvelles images à la liste finale
-                        List<String> allImagesBase64 = [
-                          ..._existingImagesBase64,
-                          ...await Future.wait(
-                            _images.map((img) async {
-                              final bytes = await img.readAsBytes();
-                              return base64Encode(bytes);
-                            }),
-                          ),
-                        ];
+                                    // Ajoute les nouvelles images à la liste finale
+                                    List<String> allImagesBase64 = [
+                                      ..._existingImagesBase64,
+                                      ...await Future.wait(
+                                        _images.map((img) async {
+                                          final bytes = await img.readAsBytes();
+                                          return base64Encode(bytes);
+                                        }),
+                                      ),
+                                    ];
 
-                        final response = await AuthService.authenticatedDio.put(
-                          'http://10.0.2.2:4000/api/spot/update/${_spot.id}',
-                          data: jsonEncode({
-                            'name': _spotController.text,
-                            'city': _villeController.text,
-                            'description': _descriptionController.text,
-                            'gps': _gpsController.text,
-                            'level': _selectedNiveau,
-                            'difficulty': _selectedDifficulte,
-                            'images': allImagesBase64,
-                          }),
-                        );
-                        setModalState(() => _isSubmitting = false);
+                                    // Vérification qu'au moins une photo est présente
+                                    if (allImagesBase64.isEmpty) {
+                                      setModalState(
+                                        () => _showPhotoError = true,
+                                      );
+                                      return;
+                                    } else {
+                                      setModalState(
+                                        () => _showPhotoError = false,
+                                      );
+                                    }
 
-                        if (response.statusCode == 200) {
-                          final updatedSpot = SurfSpot.fromJson(
-                            response.data['spot'],
-                          );
-                          setState(() {
-                            _spot = updatedSpot;
-                            _existingImagesBase64 = List<String>.from(
-                              _spot.imageBase64,
-                            );
-                            _images.clear();
-                          });
+                                    setModalState(() => _isSubmitting = true);
 
-                          // Retourne le spot mis à jour à la page précédente
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop(updatedSpot);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Erreur lors de la modification'),
+                                    final response = await AuthService
+                                        .authenticatedDio
+                                        .put(
+                                          'http://10.0.2.2:4000/api/spot/update/${_spot.id}',
+                                          data: jsonEncode({
+                                            'name': _spotController.text,
+                                            'city': _villeController.text,
+                                            'description':
+                                                _descriptionController.text,
+                                            'gps': _gpsController.text,
+                                            'level': _selectedNiveau,
+                                            'difficulty': _selectedDifficulte,
+                                            'images': allImagesBase64,
+                                          }),
+                                        );
+                                    setModalState(() => _isSubmitting = false);
+
+                                    if (response.statusCode == 200) {
+                                      final updatedSpot = SurfSpot.fromJson(
+                                        response.data['spot'],
+                                      );
+                                      setState(() {
+                                        _spot = updatedSpot;
+                                        _existingImagesBase64 =
+                                            List<String>.from(
+                                              _spot.imageBase64,
+                                            );
+                                        _images.clear();
+                                      });
+
+                                      // Retourne le spot mis à jour à la page précédente
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop(updatedSpot);
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Erreur lors de la modification',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  existingImagesBase64: _existingImagesBase64,
+                                  images: _images,
+                                  onAddImage: () async {
+                                    final picker = ImagePicker();
+                                    final picked = await picker.pickImage(
+                                      source: ImageSource.gallery,
+                                    );
+                                    if (picked != null) {
+                                      setModalState(() => _images.add(picked));
+                                    }
+                                  },
+                                  onRemoveImage: (img) {
+                                    setModalState(() => _images.remove(img));
+                                  },
+                                  onRemoveExistingImage: (imgBase64) {
+                                    setModalState(() {
+                                      _existingImagesBase64.remove(imgBase64);
+                                    });
+                                  },
+                                  isSubmitting: _isSubmitting,
+                                  formTitle: 'Modifier le spot',
+                                ),
+                              ],
                             ),
                           );
-                        }
-                      },
-                      existingImagesBase64: _existingImagesBase64,
-                      images: _images,
-                      onAddImage: () async {
-                        final picker = ImagePicker();
-                        final picked = await picker.pickImage(
-                          source: ImageSource.gallery,
-                        );
-                        if (picked != null) {
-                          setModalState(() => _images.add(picked));
-                        }
-                      },
-                      onRemoveImage: (img) {
-                        setModalState(() => _images.remove(img));
-                      },
-                      onRemoveExistingImage: (imgBase64) {
-                        setModalState(() {
-                          _existingImagesBase64.remove(imgBase64);
-                        });
-                      },
-                      isSubmitting: _isSubmitting,
-                      formTitle: 'Modifier le spot',
+                        },
+                      ),
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );

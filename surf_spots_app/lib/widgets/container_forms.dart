@@ -27,6 +27,7 @@ class ContainerForms extends StatelessWidget {
 
   final bool isSubmitting;
   final String? formTitle;
+  final bool isGpsEditable;
 
   const ContainerForms({
     super.key,
@@ -48,6 +49,7 @@ class ContainerForms extends StatelessWidget {
     required this.onRemoveExistingImage,
     required this.isSubmitting,
     this.formTitle,
+    this.isGpsEditable = true,
   });
 
   @override
@@ -129,45 +131,147 @@ class ContainerForms extends StatelessWidget {
                     : null,
               ),
               const SizedBox(height: 10),
-              CustomInputField(
-                controller: gpsController,
-                label: 'Coordonnées GPS',
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Coordonnées requises'
-                    : null,
-              ),
+              // Interface GPS avec bouton pour sélection sur carte
+              if (isGpsEditable) ...[
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap: onPickLocation,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.near_me_rounded,
+                            color: Colors.blue,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: onPickLocation,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                            ),
+                            child: const Text(
+                              'Ajouter marqueur sur la carte',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      CustomInputField(
+                        controller: gpsController,
+                        label: 'Point GPS',
+                        keyboardType: TextInputType.text,
+                        enabled: false, // Désactivé
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Ce champ est requis'
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                // Champ GPS simple en lecture seule pour la modification
+                CustomInputField(
+                  controller: gpsController,
+                  label: 'Coordonnées GPS',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Coordonnées requises'
+                      : null,
+                  enabled: false,
+                ),
+              ],
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  const Text('Niveau : '),
-                  DropdownButton<int>(
-                    value: selectedNiveau,
-                    items: [1, 2, 3]
-                        .map(
-                          (level) => DropdownMenuItem(
-                            value: level,
-                            child: Text(level.toString()),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: onNiveauChanged,
-                  ),
-                  const SizedBox(width: 20),
-                  const Text('Difficulté : '),
-                  DropdownButton<int>(
-                    value: selectedDifficulte,
-                    items: [1, 2, 3]
-                        .map(
-                          (diff) => DropdownMenuItem(
-                            value: diff,
-                            child: Text(diff.toString()),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: onDifficulteChanged,
-                  ),
-                ],
+              // Niveau
+              const Text(
+                'Niveau',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 4.0,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Row(
+                  children: [
+                    DropdownButton<int>(
+                      value: selectedNiveau,
+                      items: [1, 2, 3]
+                          .map(
+                            (val) => DropdownMenuItem(
+                              value: val,
+                              child: Text('$val'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: onNiveauChanged,
+                      underline: Container(),
+                      dropdownColor: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+              if (selectedNiveau == null)
+                const Padding(
+                  padding: EdgeInsets.only(left: 12.0, top: 4.0),
+                  child: Text(
+                    'Ce champ est requis',
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+              const SizedBox(height: 10),
+              // Difficulté
+              const Text(
+                'Difficulté',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 4.0,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Row(
+                  children: [
+                    DropdownButton<int>(
+                      value: selectedDifficulte,
+                      items: [1, 2, 3]
+                          .map(
+                            (val) => DropdownMenuItem(
+                              value: val,
+                              child: Text('$val'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: onDifficulteChanged,
+                      underline: Container(),
+                      dropdownColor: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+              if (selectedDifficulte == null)
+                const Padding(
+                  padding: EdgeInsets.only(left: 12.0, top: 4.0),
+                  child: Text(
+                    'Ce champ est requis',
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
               const SizedBox(height: 14),
               Text(
                 'Photos',
