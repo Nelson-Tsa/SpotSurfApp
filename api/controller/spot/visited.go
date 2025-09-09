@@ -1,6 +1,7 @@
 package spot
 
 import (
+	"fmt"
 	"net/http"
 	"surf_spots_app/model"
 
@@ -20,26 +21,36 @@ func getUserIDFromContext(c *gin.Context) (int, bool) {
 }
 
 func (h *SpotHandler) AddVisited(c *gin.Context) {
+	fmt.Println(" AddVisited called")
+
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
+		fmt.Println(" Authentication failed in AddVisited")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
+
+	fmt.Printf(" Authentication successful, userID: %d\n", userID)
 
 	var req struct {
 		SpotID int `json:"spot_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
+		fmt.Printf(" JSON binding error: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	fmt.Printf(" Adding visit for user %d to spot %d\n", userID, req.SpotID)
+
 	visited := model.Visited{UserID: userID, SpotID: req.SpotID}
 	if err := h.DB.Create(&visited).Error; err != nil {
+		fmt.Printf(" Database error: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	fmt.Printf(" Visit recorded successfully with ID: %d\n", visited.ID)
 	c.JSON(http.StatusOK, visited)
 }
 

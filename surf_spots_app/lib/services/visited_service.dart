@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
-import 'package:surf_spots_app/services/api_client.dart';
+import 'package:surf_spots_app/services/auth_service.dart';
 
 class VisitedService {
   static const String baseUrl = "http://10.0.2.2:4000/api/spot";
 
-  static Dio get _dio => ApiClient.dio;
+  static Dio get _dio => AuthService.authenticatedDio;
 
   // Ajouter un spot visité
   static Future<void> addVisited(int spotId) async {
