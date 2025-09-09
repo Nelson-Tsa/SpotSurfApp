@@ -9,6 +9,7 @@ import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/pages/spot_detail_page.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
+import 'package:surf_spots_app/services/auth_service.dart';
 import 'dart:io';
 
 class MapPage extends StatefulWidget {
@@ -92,7 +93,7 @@ class MapPageState extends State<MapPage> {
             _selectedSpotDescription =
                 'L\'une des vagues les plus puissantes et célèbres au monde, située en Polynésie française.';
             _selectedSpot = SurfSpot(
-              id: 'teahupoo', // Ajoute un id unique
+              id: 'teahupoo',
               name: 'Teahupoo Wave',
               city: 'Tahiti, Polynésie',
               level: 1,
@@ -104,7 +105,8 @@ class MapPageState extends State<MapPage> {
                 'assets/images/teahupoo2.jpg',
                 'assets/images/teahupoo3.jpg',
               ],
-              userId: 1, // ou l’id du créateur/admin
+              userId: 1,
+              gps: '-17.8473,-149.2671', // <-- Ajoute ce champ
               isLiked: false,
             );
           });
@@ -145,6 +147,7 @@ class MapPageState extends State<MapPage> {
                           .toList()
                     : [],
                 userId: jsonSpot['user_id'], // Ajoute le userId
+                gps: jsonSpot['gps'] ?? '', // <-- Ajoute cette ligne
               );
               _markers.add(
                 Marker(
@@ -285,7 +288,7 @@ class MapPageState extends State<MapPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_selectedSpot != null) {
-                    final refresh = await Navigator.push(
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
@@ -293,8 +296,20 @@ class MapPageState extends State<MapPage> {
                       ),
                     );
 
-                    if (refresh == true) {
-                      // Vide les infos du spot et ferme le panel
+                    if (result is SurfSpot) {
+                      // Le spot a été mis à jour, on met à jour les données locales
+                      setState(() {
+                        _selectedSpot = result;
+                        _selectedSpotTitle = result.name;
+                        _selectedSpotDescription = result.description;
+                        _selectedSpotCity = result.city;
+                        _selectedSpotLevel = result.level;
+                        _selectedSpotDifficulty = result.difficulty;
+                      });
+                      // Rafraîchit la carte avec les nouvelles données
+                      await fetchSpotsAndMarkers();
+                    } else if (result == true) {
+                      // Le spot a été supprimé
                       setState(() {
                         _selectedSpot = null;
                         _selectedSpotTitle = "Aucun spot sélectionné";
@@ -305,7 +320,7 @@ class MapPageState extends State<MapPage> {
                         _selectedSpotDifficulty = 0;
                       });
                       _panelController.close();
-                      await fetchSpotsAndMarkers(); // Rafraîchis la map si besoin
+                      await fetchSpotsAndMarkers();
                     }
                   }
                 },
@@ -319,6 +334,8 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _validateAndAddSpot() async {
+    print('🚀 Starting spot validation and creation...');
+
     if (_isSubmitting) return;
 
     final currentUser = Provider.of<UserProvider>(
@@ -340,34 +357,41 @@ class MapPageState extends State<MapPage> {
         _isSubmitting = true;
       });
       // 1. Envoie le spot au backend
-      final spotResponse = await http.post(
-        Uri.parse('http://10.0.2.2:4000/api/spot/create'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final spotResponse = await AuthService.authenticatedDio.post(
+        '/api/spot/create',
+        data: {
           'name': _spotController.text,
           'city': _villeController.text,
           'description': _descriptionController.text,
           'level': _selectedNiveau,
           'difficulty': _selectedDifficulte,
           'gps': "${_pickedLocation!.latitude},${_pickedLocation!.longitude}",
-          'user_id': currentUserId, // <-- ici
-        }),
+        },
       );
 
       if (spotResponse.statusCode == 201) {
-        final spotData = jsonDecode(spotResponse.body);
+        final spotData = spotResponse.data;
         final spotId = spotData['id']; // récupère l'ID du spot créé
+
+        print('🎯 Spot created successfully with ID: $spotId');
+        print('📷 Number of images to upload: ${_images.length}');
 
         // 2. Envoie chaque image au backend
         for (var image in _images) {
           final bytes = await image.readAsBytes();
           final base64Image = base64Encode(bytes);
 
-          await http.post(
-            Uri.parse('http://10.0.2.2:4000/api/spot/images'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'spot_id': spotId, 'image_data': base64Image}),
-          );
+          try {
+            print('📸 Uploading image for spot $spotId...');
+            final imageResponse = await AuthService.authenticatedDio.post(
+              '/api/spot/images',
+              data: {'spot_id': spotId, 'image_data': base64Image},
+            );
+            print('✅ Image uploaded successfully: ${imageResponse.statusCode}');
+          } catch (e) {
+            print('❌ Error uploading image: $e');
+            // Continue with other images even if one fails
+          }
         }
 
         // Recharge les markers depuis la BDD
@@ -400,6 +424,9 @@ class MapPageState extends State<MapPage> {
         );
       }
     } else {
+      setState(() {
+        _isSubmitting = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -420,7 +447,6 @@ class MapPageState extends State<MapPage> {
         });
       }
     } catch (e) {
-      print('Erreur lors de la sélection des images : $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la sélection des images')),
       );
@@ -523,9 +549,11 @@ class MapPageState extends State<MapPage> {
                       onDifficulteChanged: (val) =>
                           setState(() => _selectedDifficulte = val),
                       onValidate: _validateAndAddSpot,
-                      images: _images, // AJOUTE CET ARGUMENT
-                      onAddImage: _pickImages, // AJOUTE CET ARGUMENT
-                      onRemoveImage: _removeImage, // AJOUTE CET ARGUMENT
+                      existingImagesBase64: const [], // <-- AJOUTE CETTE LIGNE
+                      images: _images,
+                      onAddImage: _pickImages,
+                      onRemoveImage: _removeImage,
+                      onRemoveExistingImage: (_) {}, // <-- AJOUTE CETTE LIGNE
                     )
                   : buildSpotDetailsPanel(),
             ),

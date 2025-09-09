@@ -1,6 +1,7 @@
 package spot
 
 import (
+	"surf_spots_app/controller/image"
 	"surf_spots_app/controller/user"
 
 	"github.com/gin-gonic/gin"
@@ -11,16 +12,30 @@ type SpotHandler struct {
 	DB *gorm.DB
 }
 
+func (handler *SpotHandler) AddImageToSpot(c *gin.Context) {
+	// Code de la méthode AddImageToSpot
+}
+
 func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 	handler := &SpotHandler{DB: db}
+	userHandler := &user.UserHandler{DB: db}
+	imageHandler := &image.ImageHandler{DB: db}
 
-	publicUserRoutes := router.Group("/api/spot")
+	// Routes publiques (lecture seule)
+	publicSpotRoutes := router.Group("/api/spot")
 	{
-		publicUserRoutes.POST("/create", handler.CreateSpot)
-		publicUserRoutes.GET("/spots", handler.GetAllSpots)
-		publicUserRoutes.PUT("/update", handler.UpdateSpot)
-		publicUserRoutes.DELETE("/delete", handler.DeleteSpot)
-		// publicUserRoutes.GET("/spot/:id", handler.GetSpotByID)
+		publicSpotRoutes.GET("/spots", handler.GetAllSpots)
+		// publicSpotRoutes.GET("/spot/:id", handler.GetSpotByID)
+	}
+
+	// Routes protégées (nécessitent une authentification)
+	protectedSpotRoutes := router.Group("/api/spot")
+	protectedSpotRoutes.Use(userHandler.AuthRequired)
+	{
+		protectedSpotRoutes.POST("/create", handler.CreateSpot)
+		protectedSpotRoutes.PUT("/update/:id", handler.UpdateSpot)
+		protectedSpotRoutes.DELETE("/delete/:id", handler.DeleteSpot)
+		protectedSpotRoutes.POST("/images", imageHandler.AddImageToSpot)
 	}
 
 	protectedRoutes := router.Group("/api/spot")
@@ -32,10 +47,9 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		protectedRoutes.DELETE("/visited/spot/:spotId", handler.DeleteVisitedBySpot)
 	}
 
-	// protectedUserRoutes := router.Group("/api/users")
-	// protectedUserRoutes.Use(middleware.AuthMiddleware())
-	// {
-	// 	protectedUserRoutes.GET("/profile", controller.GetProfile)
-	// 	protectedUserRoutes.PUT("/profile", controller.UpdateProfile)
-	// }
+	protectedUserRoutes := router.Group("/api/spot")
+	protectedUserRoutes.Use(userHandler.AuthRequired)
+	{
+		protectedUserRoutes.GET("/my-spots", handler.GetMySpots)
+	}
 }

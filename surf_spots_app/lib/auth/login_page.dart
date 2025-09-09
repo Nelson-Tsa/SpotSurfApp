@@ -156,11 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(color: AppColors.primary),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: ReturnButton(),
-                  ),
+                  SizedBox(height: 10),
                 ],
               ),
             ],

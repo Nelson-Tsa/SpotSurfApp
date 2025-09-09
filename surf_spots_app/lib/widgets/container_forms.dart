@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../widgets/custom_input_field.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
+import '../widgets/custom_input_field.dart';
 
 class ContainerForms extends StatelessWidget {
   final TextEditingController gpsController;
@@ -16,13 +17,17 @@ class ContainerForms extends StatelessWidget {
   final ValueChanged<int?> onDifficulteChanged;
 
   final GlobalKey<FormState> formKey;
-  final VoidCallback onValidate; // AJOUTE CE PARAMÈTRE
+  final VoidCallback onValidate;
 
+  final List<String> existingImagesBase64;
   final List<XFile> images;
   final VoidCallback onAddImage;
   final void Function(XFile) onRemoveImage;
+  final void Function(String) onRemoveExistingImage;
 
-  final bool isSubmitting; // Ajoute ce paramètre
+  final bool isSubmitting;
+  final String? formTitle;
+  final bool isGpsEditable;
 
   const ContainerForms({
     super.key,
@@ -36,11 +41,15 @@ class ContainerForms extends StatelessWidget {
     required this.selectedDifficulte,
     required this.onNiveauChanged,
     required this.onDifficulteChanged,
-    required this.onValidate, // AJOUTE CE PARAMÈTRE
+    required this.onValidate,
+    required this.existingImagesBase64,
     required this.images,
     required this.onAddImage,
     required this.onRemoveImage,
-    required this.isSubmitting, // Ajoute ce paramètre
+    required this.onRemoveExistingImage,
+    required this.isSubmitting,
+    this.formTitle,
+    this.isGpsEditable = true,
   });
 
   @override
@@ -65,58 +74,112 @@ class ContainerForms extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(padding: const EdgeInsets.only(top: 8.0, bottom: 16.0)),
-              const Center(
-                child: Text(
-                  'Ajout spot de surf',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.black,
+              if (formTitle == null)
+                const Center(
+                  child: Text(
+                    'Ajout spot de surf',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 14),
-              CustomInputField(
-                controller: villeController,
-                label: 'Ville',
-                keyboardType: TextInputType.text,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Ce champ est requis'
-                    : null,
-              ),
-              const SizedBox(height: 14),
+              // Champs du formulaire...
               CustomInputField(
                 controller: spotController,
                 label: 'Nom du spot',
-                keyboardType: TextInputType.text,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Ce champ est requis'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Nom requis' : null,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
+              CustomInputField(
+                controller: villeController,
+                label: 'Ville',
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ville requise' : null,
+              ),
+              const SizedBox(height: 10),
               CustomInputField(
                 controller: descriptionController,
                 label: 'Description',
-                keyboardType: TextInputType.multiline,
+                maxLines: 3,
                 validator: (value) => value == null || value.isEmpty
-                    ? 'Ce champ est requis'
+                    ? 'Description requise'
                     : null,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
+              // Interface GPS avec bouton pour sélection sur carte
+              if (isGpsEditable) ...[
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap: onPickLocation,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.near_me_rounded,
+                            color: Colors.blue,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: onPickLocation,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                            ),
+                            child: const Text(
+                              'Ajouter marqueur sur la carte',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      CustomInputField(
+                        controller: gpsController,
+                        label: 'Point GPS',
+                        keyboardType: TextInputType.text,
+                        enabled: false, // Désactivé
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Ce champ est requis'
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                // Champ GPS simple en lecture seule pour la modification
+                CustomInputField(
+                  controller: gpsController,
+                  label: 'Coordonnées GPS',
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Coordonnées requises'
+                      : null,
+                  enabled: false,
+                ),
+              ],
+              const SizedBox(height: 10),
+              // Niveau
               const Text(
                 'Niveau',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 12.0,
+                  vertical: 4.0,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(51),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Row(
                   children: [
@@ -145,20 +208,21 @@ class ContainerForms extends StatelessWidget {
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   ),
                 ),
+              const SizedBox(height: 10),
+              // Difficulté
               const Text(
                 'Difficulté',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 12.0,
+                  vertical: 4.0,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(51),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Row(
                   children: [
@@ -187,168 +251,119 @@ class ContainerForms extends StatelessWidget {
                     style: TextStyle(color: Colors.red, fontSize: 12),
                   ),
                 ),
-              const SizedBox(height: 4),
-              GestureDetector(
-                onTap: onPickLocation,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              const SizedBox(height: 14),
+              Text(
+                'Photos',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  // Images existantes (base64)
+                  ...existingImagesBase64.map(
+                    (imgBase64) => Stack(
                       children: [
-                        Icon(
-                          Icons.near_me_rounded,
-                          color: Colors.blue,
-                          size: 28,
-                        ),
-                        ElevatedButton(
-                          onPressed: onPickLocation,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                        Container(
+                          width: 80,
+                          height: 80,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.memory(
+                              base64Decode(imgBase64),
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                          child: const Text(
-                            'Ajouter marqueur sur la carte',
-                            style: TextStyle(fontSize: 15, color: Colors.white),
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () => onRemoveExistingImage(imgBase64),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    CustomInputField(
-                      controller: gpsController,
-                      label: 'Point GPS',
-                      keyboardType: TextInputType.text,
-                      enabled: false, // Désactivé
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Ce champ est requis'
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Photo',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  width: 320,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(5),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Déposer vos images ici',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: onAddImage,
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Affiche les images sélectionnées
-                      Wrap(
-                        spacing: 8,
-                        children: images
-                            .map(
-                              (img) => Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Image.file(
-                                    File(img.path),
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  Positioned(
-                                    right: -10,
-                                    top: -10,
-                                    child: GestureDetector(
-                                      onTap: () => onRemoveImage(img),
-                                      child: Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.remove,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                            .toList(),
-                      ),
-                      if (images.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 3.0),
-                          child: Text(
-                            'Veuillez ajouter au moins une photo',
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: SizedBox(
-                  width: 150,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: isSubmitting ? null : onValidate,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      backgroundColor: const Color(0xFF1A73E8),
-                    ),
-                    child: isSubmitting
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 3,
+                  // Images ajoutées (XFile)
+                  ...images.map(
+                    (img) => Stack(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(img.path),
+                              fit: BoxFit.cover,
                             ),
-                          )
-                        : const Text(
-                            'Valider',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () => onRemoveImage(img),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  // Bouton d'ajout
+                  GestureDetector(
+                    onTap: onAddImage,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey),
+                      ),
+                      child: const Icon(Icons.add_a_photo, color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
+                  onPressed: isSubmitting ? null : onValidate,
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Valider'),
                 ),
               ),
+              const SizedBox(height: 10),
             ],
           ),
         ),

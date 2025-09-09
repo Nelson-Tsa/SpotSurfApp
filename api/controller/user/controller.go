@@ -23,5 +23,6 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	protectedUserRoutes.Use(AuthRequired(db))
 	{
 		protectedUserRoutes.GET("/user", handler.GetUser)
+		protectedUserRoutes.PUT("/user", handler.UpdateUser)
 	}
 }

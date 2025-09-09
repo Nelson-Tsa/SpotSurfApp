@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/surf_spot.dart';
 
+import 'package:surf_spots_app/services/auth_service.dart';
 // Garde ta fonction existante
 Future<void> createSpotWithImage({
   required String name,
@@ -25,15 +27,31 @@ Future<void> createSpotWithImage({
     ..files.add(await http.MultipartFile.fromPath('image', imagePath));
   var response = await request.send();
   if (response.statusCode == 200) {
-    print('Spot créé avec succès');
+    // Spot créé avec succès
   } else {
-    print('Erreur lors de la création du spot');
+    // Erreur lors de la création du spot
   }
 }
 
+
+
 class SpotService {
   static const String baseUrl = 'http://10.0.2.2:4000/api/spot';
+static Future<List<dynamic>> getMySpots() async {
+    try {
+      final response = await AuthService.authenticatedDio.get(
+        '/api/spot/my-spots',
+      );
 
+      if (response.statusCode == 200) {
+        return response.data as List<dynamic>;
+      } else {
+        throw Exception('Failed to load spots');
+      }
+    } catch (e) {
+      throw Exception('Error fetching spots: $e');
+    }
+  }
   static Future<List<SurfSpot>> fetchAllSpots() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/spots'));
@@ -57,6 +75,7 @@ class SpotService {
                           .cast<String>()
                           .toList()
                     : [],
+                    gps : json['gps'] ?? '',
               ),
             )
             .toList();

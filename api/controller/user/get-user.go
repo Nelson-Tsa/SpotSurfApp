@@ -21,5 +21,6 @@ func (h *UserHandler) GetUser(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"user": user,
+		
 	})
 }

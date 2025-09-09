@@ -16,13 +16,19 @@ func (h *SpotHandler) CreateSpot(ctx *gin.Context) {
 		Level       int    `json:"level"`      // <-- int ici
 		Difficulty  int    `json:"difficulty"` // <-- int ici
 		Gps         string `json:"gps"`
-		UserID      int    `json:"user_id"`
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Format JSON invalide",
 			"details": err.Error(), // Ajoute ce détail
 		})
+		return
+	}
+
+	// Récupère l'ID utilisateur depuis le contexte d'authentification
+	userID := ctx.GetInt("user_id")
+	if userID == 0 {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Utilisateur non authentifié"})
 		return
 	}
 
@@ -33,7 +39,7 @@ func (h *SpotHandler) CreateSpot(ctx *gin.Context) {
 		Level:       strconv.Itoa(req.Level),      // conversion int -> string
 		Difficulty:  strconv.Itoa(req.Difficulty), // conversion int -> string
 		Gps:         req.Gps,
-		UserID:      req.UserID,
+		UserID:      userID,
 		LikeCount:   0,
 	}
 	if err := h.DB.Create(&spot).Error; err != nil {

@@ -1,15 +1,17 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:surf_spots_app/models/user.dart';
-import 'package:surf_spots_app/services/api_client.dart';
 
 class AuthService {
   static const String _baseUrl = 'http://10.0.2.2:4000/api/users';
   static const String _loginKey = 'is_logged_in';
 
-  static Dio get _dio => ApiClient.dio;
+  static final Dio _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:4000'))
+    ..interceptors.add(CookieManager(CookieJar()));
 
   static Future<Map<String, dynamic>> login({
     required String email,
@@ -17,7 +19,7 @@ class AuthService {
   }) async {
     try {
       final response = await _dio.post(
-        '$_baseUrl/login',
+        '/api/users/login',
         data: {'email': email, 'password': password},
       );
 
@@ -74,14 +76,31 @@ class AuthService {
   }
 
   static Future<Map<String, dynamic>> logout() async {
-    // TODO: Intégrer avec l'API Golang
-    // final response = await http.post(
-    //   Uri.parse('$_baseUrl/logout'),
-    //   headers: {'Content-Type': 'application/json'},
-    // );
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/logout'),
 
-    await _setLoggedIn(false);
-    return {'success': true, 'message': 'Déconnexion réussie'};
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        await _setLoggedIn(false);
+
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Déconnexion réussie',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['error'] ?? 'Erreur lors de la déconnexion',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur réseau: $e'};
+    }
   }
 
   static Future<bool> isLoggedIn() async {
@@ -97,30 +116,86 @@ class AuthService {
   static Future<User?> getUser() async {
     try {
       print('🔄 Appel de getUser() avec URL: $_baseUrl/user');
-      final response = await _dio.get('$_baseUrl/user');
+      final response = await _dio.get('/api/users/user');
 
       print('📡 Status Code: ${response.statusCode}');
       print('📊 Response Data: ${response.data}');
 
       if (response.statusCode == 200 && response.data != null) {
         final userData = response.data['user'];
-        print('👤 User Data: $userData');
 
         if (userData != null) {
-          print('✅ Création de l\'objet User...');
           final user = User.fromJson(userData);
-          print('✅ User créé: ${user.name} (${user.email})');
           return user;
         } else {
-          print('❌ Pas de propriété "user" dans la réponse');
           return null;
         }
       }
-      print('❌ Status code: ${response.statusCode} ou response.data null');
       return null;
     } catch (e) {
-      print('💥 Erreur dans getUser(): $e');
       return null;
     }
   }
+
+  static Future<Map<String, dynamic>> updateUser({
+    required String name,
+    required String email,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/api/users/user',
+        data: {'name': name, 'email': email},
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Utilisateur mis à jour avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': response.data['error'] ?? 'Erreur lors de la mise à jour',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de réseau'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/api/users/user',
+        data: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Mot de passe modifié avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message':
+              response.data['error'] ??
+              'Erreur lors du changement de mot de passe',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de réseau'};
+    }
+  }
+
+  // Méthode pour obtenir l'instance Dio avec les cookies d'authentification
+  static Dio get authenticatedDio => _dio;
 }

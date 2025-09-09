@@ -6,9 +6,10 @@ class SurfSpot {
   final int level;
   final int difficulty;
   final List<String> imageBase64;
-  final int userId; // ou creatorId selon ton choix
+  final int userId;
+  final String gps; // <-- Ajoute ce champ
 
-  bool? isLiked; // <-- Ajouté
+  bool? isLiked;
 
   SurfSpot({
     required this.id,
@@ -19,6 +20,7 @@ class SurfSpot {
     required this.difficulty,
     required this.imageBase64,
     required this.userId,
+    required this.gps, // <-- Ajoute dans le constructeur
     this.isLiked,
   });
 
@@ -37,9 +39,10 @@ class SurfSpot {
                 .cast<String>()
                 .toList()
           : [],
-      userId: (json['user_id'] is int)
-          ? json['user_id']
-          : int.tryParse(json['user_id'].toString()) ?? 0,
+      userId:
+          json['user_id'] ?? 0, // <-- adapte selon le nom exact du champ JSON
+      gps: json['gps'] ?? '', // <-- Ajoute ici
+      isLiked: json['isLiked'], // optionnel selon ton API
     );
   }
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"surf_spots_app/config"
-	"surf_spots_app/controller/image"
+	// "surf_spots_app/controller/image"
 	"surf_spots_app/controller/spot"
 	"surf_spots_app/controller/user"
 	"surf_spots_app/db"
@@ -22,8 +22,7 @@ func main() {
 
 	db := db.InitDB(configEnv.DatabaseURL)
 
-	imageHandler := &image.ImageHandler{DB: db}
-	spotHandler := &spot.SpotHandler{DB: db}
+	// imageHandler := &image.ImageHandler{DB: db}
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -34,12 +33,6 @@ func main() {
 	// Routes
 	user.UserRoutes(r, db)
 	spot.SpotRoutes(r, db)
-	r.POST("/api/spot/images", imageHandler.AddImageToSpot)
-
-	spotGroup := r.Group("/spots")
-	{
-		spotGroup.DELETE("/:id", spotHandler.DeleteSpot)
-	}
 
 	err = r.Run(fmt.Sprintf(":%s", configEnv.Port))
 	if err != nil {
