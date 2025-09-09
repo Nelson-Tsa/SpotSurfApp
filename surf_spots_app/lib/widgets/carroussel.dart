@@ -46,8 +46,6 @@ class _CarrousselState extends State<Carroussel> {
     final response = await http.get(
       Uri.parse('http://10.0.2.2:4000/api/spot/spots'),
     );
-    print('Status code: ${response.statusCode}');
-    print('Body: ${response.body}');
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final List<dynamic> data = json.decode(response.body);
       setState(() {

@@ -37,4 +37,10 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		protectedSpotRoutes.DELETE("/delete/:id", handler.DeleteSpot)
 		protectedSpotRoutes.POST("/images", imageHandler.AddImageToSpot)
 	}
+
+	protectedUserRoutes := router.Group("/api/spot")
+	protectedUserRoutes.Use(userHandler.AuthRequired)
+	{
+		protectedUserRoutes.GET("/my-spots", handler.GetMySpots)
+	}
 }
