@@ -247,10 +247,23 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                   // Titre du formulaire
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'Modifier le spot',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.blue,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                          tooltip: 'Fermer',
+                        ),
+                        const SizedBox(width: 55),
+                        Text(
+                          'Modifier le spot',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),

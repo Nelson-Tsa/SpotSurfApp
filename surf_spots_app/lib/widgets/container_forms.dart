@@ -74,27 +74,6 @@ class ContainerForms extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(padding: const EdgeInsets.only(top: 8.0, bottom: 16.0)),
-              if (formTitle != null)
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.blue),
-                      onPressed: () => Navigator.of(context).pop(),
-                      tooltip: 'Fermer',
-                    ),
-                    Expanded(
-                      child: Text(
-                        formTitle!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                ),
               if (formTitle == null)
                 const Center(
                   child: Text(
