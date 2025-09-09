@@ -36,20 +36,10 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		protectedSpotRoutes.PUT("/update/:id", handler.UpdateSpot)
 		protectedSpotRoutes.DELETE("/delete/:id", handler.DeleteSpot)
 		protectedSpotRoutes.POST("/images", imageHandler.AddImageToSpot)
-	}
-
-	protectedRoutes := router.Group("/api/spot")
-		protectedRoutes.Use(userHandler.AuthRequired) // <- ici, tu passes la DB
-	{
-		protectedRoutes.POST("/visited", handler.AddVisited)
-		protectedRoutes.GET("/visited", handler.GetVisited)
-		protectedRoutes.DELETE("/visited/:id", handler.DeleteVisited)
-		protectedRoutes.DELETE("/visited/spot/:spotId", handler.DeleteVisitedBySpot)
-	}
-
-	protectedUserRoutes := router.Group("/api/spot")
-	protectedUserRoutes.Use(userHandler.AuthRequired)
-	{
-		protectedUserRoutes.GET("/my-spots", handler.GetMySpots)
+		protectedSpotRoutes.GET("/my-spots", handler.GetMySpots)
+		protectedSpotRoutes.POST("/visited", handler.AddVisited)
+		protectedSpotRoutes.GET("/visited", handler.GetVisited)
+		protectedSpotRoutes.DELETE("/visited/:id", handler.DeleteVisited)
+		protectedSpotRoutes.DELETE("/visited/spot/:spotId", handler.DeleteVisitedBySpot)
 	}
 }
