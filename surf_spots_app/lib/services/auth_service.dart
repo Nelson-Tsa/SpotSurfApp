@@ -138,6 +138,65 @@ class AuthService {
     }
   }
 
+  static Future<Map<String, dynamic>> updateUser({
+    required String name,
+    required String email,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/api/users/user',
+        data: {'name': name, 'email': email},
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Utilisateur mis à jour avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': response.data['error'] ?? 'Erreur lors de la mise à jour',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de réseau'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/api/users/user',
+        data: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Mot de passe modifié avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message':
+              response.data['error'] ??
+              'Erreur lors du changement de mot de passe',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de réseau'};
+    }
+  }
+
   // Méthode pour obtenir l'instance Dio avec les cookies d'authentification
   static Dio get authenticatedDio => _dio;
 }

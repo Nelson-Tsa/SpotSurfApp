@@ -50,6 +50,7 @@ class _UserSpotsCarouselState extends State<UserSpotsCarousel> {
                           .cast<String>()
                           .toList()
                     : [],
+                    gps: json['gps'] ?? '',
               ),
             )
             .toList();

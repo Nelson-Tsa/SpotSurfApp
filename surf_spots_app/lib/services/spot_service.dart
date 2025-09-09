@@ -1,16 +1,22 @@
 import 'package:http/http.dart' as http;
 import 'package:surf_spots_app/services/http_client.dart';
+import 'package:surf_spots_app/services/auth_service.dart';
 
 class SpotService {
   // Récupère les spots de l'utilisateur connecté
   static Future<List<dynamic>> getMySpots() async {
     try {
-      final response = await HttpClient.instance.get(
-        'http://10.0.2.2:4000/api/spot/my-spots',
+      final response = await AuthService.authenticatedDio.get(
+        '/api/spot/my-spots',
       );
-      return response.data ?? [];
+
+      if (response.statusCode == 200) {
+        return response.data as List<dynamic>;
+      } else {
+        throw Exception('Failed to load spots');
+      }
     } catch (e) {
-      return [];
+      throw Exception('Error fetching spots: $e');
     }
   }
 }
