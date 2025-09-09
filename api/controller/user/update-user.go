@@ -4,6 +4,7 @@ import (
 	"surf_spots_app/model"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (h *UserHandler) UpdateUser(ctx *gin.Context) {
@@ -21,7 +22,29 @@ func (h *UserHandler) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	delete(updates, "password")
+	if newPassword, hashPassword := updates["new_password"].(string); hashPassword {
+		currentPassword, hasCurrentPassword := updates["current_password"].(string)
+		if !hasCurrentPassword {
+			ctx.JSON(400, gin.H{"error": "Current password is required to change password"})
+			return
+		}
+
+		if err := bcrypt.CompareHashAndPassword([]byte(currentUser.Password), []byte(currentPassword)); err != nil {
+			ctx.JSON(400, gin.H{"error": "Current password is incorrect"})
+			return
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+		if err != nil {
+			ctx.JSON(500, gin.H{"error": "Failed to hash password"})
+			return
+		}
+
+		updates["password"] = string(hashedPassword)
+	}
+
+	delete(updates, "current_password")
+	delete(updates, "new_password")
 
 	if err := h.DB.Model(&currentUser).Updates(updates).Error; err != nil {
 		ctx.JSON(500, gin.H{"error": "Failed to update user"})

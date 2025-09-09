@@ -5,6 +5,7 @@ import 'package:surf_spots_app/constants/colors.dart';
 import 'package:surf_spots_app/models/user.dart';
 import 'package:surf_spots_app/main.dart';
 import 'package:surf_spots_app/pages/update_profile_page.dart';
+import 'package:surf_spots_app/pages/change_password_page.dart';
 import '../services/auth_service.dart';
 import '../providers/user_provider.dart';
 
@@ -29,6 +30,23 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _futureKey = UniqueKey();
       });
+    }
+  }
+
+  void _navigateToChangePassword() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+    );
+
+    // Pas besoin de rafraîchir car le changement de mot de passe n'affecte pas l'affichage
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mot de passe modifié avec succès'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
@@ -169,6 +187,8 @@ class _ProfilePageState extends State<ProfilePage> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
+
+          // Bouton Personal Information
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
@@ -186,6 +206,31 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(width: 8),
                   Text(
                     "Personal Information",
+                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Bouton Change Password
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: _navigateToChangePassword,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.lock_outline, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Changer le mot de passe",
                     style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                   ),
                 ],

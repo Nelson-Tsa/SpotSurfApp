@@ -154,4 +154,36 @@ class AuthService {
       return {'success': false, 'message': 'Erreur de réseau'};
     }
   }
+
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await HttpClient.instance.put(
+        '$_baseUrl/user',
+        data: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message':
+              response.data['message'] ?? 'Mot de passe modifié avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message':
+              response.data['error'] ??
+              'Erreur lors du changement de mot de passe',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de réseau'};
+    }
+  }
 }
