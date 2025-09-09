@@ -7,6 +7,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:provider/provider.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/pages/spot_detail_page.dart';
+import 'package:surf_spots_app/providers/spots_provider.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
 import 'package:surf_spots_app/services/auth_service.dart';
@@ -288,6 +289,12 @@ class MapPageState extends State<MapPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_selectedSpot != null) {
+                    // Marquer le spot comme visité avant d'ouvrir les détails
+                    Provider.of<SpotsProvider>(
+                      context,
+                      listen: false,
+                    ).addToHistory(_selectedSpot!);
+
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
