@@ -128,7 +128,7 @@ class _GalleryPageState extends State<GalleryPage> {
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 0.8,
+              childAspectRatio: 0.65,
             ),
             itemCount: spotsToShow.length,
             itemBuilder: (context, index) {
