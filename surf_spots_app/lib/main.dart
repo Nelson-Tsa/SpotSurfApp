@@ -162,23 +162,24 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-      // floatingActionButton:
-      //     (_selectedIndex == 2 && _isMapPanelOpen) || _selectedIndex == 4
-      //     ? null
-      //     : FloatingActionButton(
-      //         onPressed: () {
-      //           if (_selectedIndex == 2) {
-      //             _mapPageKey.currentState?.openAddSpotPanel();
-      //           } else {
-      //             setState(() => _selectedIndex = 2);
-      //             WidgetsBinding.instance.addPostFrameCallback(
-      //               (_) => _mapPageKey.currentState?.openAddSpotPanel(),
-      //             );
-      //           }
-      //         },
-      //         tooltip: 'Ajouter un spot',
-      //         child: const Icon(Icons.add),
-      //       ),
+      floatingActionButton:
+          (_selectedIndex == 2 && _isMapPanelOpen) || _selectedIndex == 4 || _selectedIndex == 0 
+          || _selectedIndex == 1 || _selectedIndex == 3
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                if (_selectedIndex == 2) {
+                  _mapPageKey.currentState?.openAddSpotPanel();
+                } else {
+                  setState(() => _selectedIndex = 2);
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _mapPageKey.currentState?.openAddSpotPanel(),
+                  );
+                }
+              },
+              tooltip: 'Ajouter un spot',
+              child: const Icon(Icons.add),
+            ),
     );
   }
 }
