@@ -6,12 +6,13 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:surf_spots_app/models/user.dart';
+import 'package:surf_spots_app/config/api_config.dart';
 
 class AuthService {
-  static const String _baseUrl = 'http://10.0.2.2:4000/api/users';
+  static String get _baseUrl => ApiConfig.usersUrl;
   static const String _loginKey = 'is_logged_in';
 
-  static final Dio _dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:4000'))
+  static final Dio _dio = Dio(BaseOptions(baseUrl: ApiConfig.baseUrl))
     ..interceptors.add(CookieManager(CookieJar()));
 
   static Future<Map<String, dynamic>> login({

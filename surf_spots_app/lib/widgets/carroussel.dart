@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/widgets/spot_card.dart';
-import 'package:http/http.dart' as http;
+import 'package:surf_spots_app/config/api_config.dart';
 import 'package:surf_spots_app/constants/colors.dart';
 
 class Carroussel extends StatefulWidget {
@@ -44,7 +45,7 @@ class _CarrousselState extends State<Carroussel> {
 
   Future<void> fetchSpots() async {
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:4000/api/spot/spots'),
+      Uri.parse('${ApiConfig.spotsUrl}/spots'),
     );
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final List<dynamic> data = json.decode(response.body);

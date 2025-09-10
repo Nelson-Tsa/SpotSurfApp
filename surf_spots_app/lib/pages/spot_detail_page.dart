@@ -1,14 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
-import 'dart:convert';
-import 'package:provider/provider.dart';
-import 'package:surf_spots_app/providers/user_provider.dart';
 import 'package:surf_spots_app/providers/spots_provider.dart';
-import 'package:surf_spots_app/widgets/container_forms.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:surf_spots_app/providers/user_provider.dart';
 import 'package:surf_spots_app/services/auth_service.dart';
 import 'package:surf_spots_app/services/spot_service.dart';
+import 'package:surf_spots_app/widgets/container_forms.dart';
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -231,7 +231,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
   Future<void> deleteSpot(String spotId) async {
     try {
       final response = await AuthService.authenticatedDio.delete(
-        'http://10.0.2.2:4000/api/spot/delete/$spotId',
+        '/api/spot/delete/$spotId',
       );
 
       if (!mounted) return;
@@ -416,7 +416,7 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                                       final response = await AuthService
                                           .authenticatedDio
                                           .put(
-                                            'http://10.0.2.2:4000/api/spot/update/${_spot.id}',
+                                            '/api/spot/update/${_spot.id}',
                                             data: jsonEncode({
                                               'name': _spotController.text,
                                               'city': _villeController.text,
@@ -515,7 +515,8 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = Provider.of<UserProvider>(context).currentUser;
+    final userProvider = Provider.of<UserProvider>(context);
+    final currentUser = userProvider.currentUser;
 
     return Scaffold(
       body: SlidingUpPanel(

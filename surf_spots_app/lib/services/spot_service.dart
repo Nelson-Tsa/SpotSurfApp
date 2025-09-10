@@ -1,8 +1,8 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:dio/dio.dart';
-import 'package:surf_spots_app/services/auth_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:surf_spots_app/models/surf_spot.dart';
+import 'package:surf_spots_app/services/auth_service.dart';
+import 'package:surf_spots_app/config/api_config.dart';
 
 Future<void> createSpotWithImage({
   required String name,
@@ -14,7 +14,7 @@ Future<void> createSpotWithImage({
   required int userId,
   required String imagePath,
 }) async {
-  var uri = Uri.parse('http://10.0.2.2:4000/api/spot/create');
+  var uri = Uri.parse('${ApiConfig.spotsUrl}/create');
   var request = http.MultipartRequest('POST', uri)
     ..fields['name'] = name
     ..fields['city'] = city
@@ -35,7 +35,7 @@ Future<void> createSpotWithImage({
 
 
 class SpotService {
-  static const String baseUrl = 'http://10.0.2.2:4000/api/spot';
+  static String get baseUrl => ApiConfig.spotsUrl;
 static Future<List<dynamic>> getMySpots() async {
     try {
       final response = await AuthService.authenticatedDio.get(
@@ -101,7 +101,7 @@ static Future<List<dynamic>> getMySpots() async {
 }
 
 class LikeService {
-  static const String baseUrl = 'http://10.0.2.2:4000';
+  static String get baseUrl => ApiConfig.baseUrl;
 
   static Future<bool> toggleLike(int spotId) async {
     try {
@@ -112,40 +112,32 @@ class LikeService {
       }
       return false;
     } catch (e) {
-      print('Erreur toggleLike: $e');
-      throw Exception('Erreur lors du toggle like: $e');
-    }
-  }
-
-  static Future<bool> isLiked(int spotId) async {
-    try {
-      final response = await AuthService.authenticatedDio.get('/api/spot/isliked/$spotId');
-
-      if (response.statusCode == 200) {
-        return response.data['isLiked'] ?? false;
-      }
-      return false;
-    } catch (e) {
-      print('Erreur isLiked: $e');
       return false;
     }
   }
 
   static Future<int> getLikesCount(int spotId) async {
     try {
-      // Utiliser Dio normal pour les compteurs publics
-      final dio = Dio();
-      dio.options.baseUrl = baseUrl;
-      
-      final response = await dio.get('/api/spot/likes/$spotId');
+      final response = await AuthService.authenticatedDio.get('/api/spot/likes/$spotId');
 
       if (response.statusCode == 200) {
         return response.data['count'] ?? 0;
       }
       return 0;
     } catch (e) {
-      print('Erreur getLikesCount: $e');
       return 0;
+    }
+  }
+
+  static Future<bool> isLiked(int spotId) async {
+    try {
+      final response = await AuthService.authenticatedDio.get('/api/spot/isliked/$spotId');
+      if (response.statusCode == 200) {
+        return response.data['isLiked'] ?? false;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -159,7 +151,7 @@ class LikeService {
       }
       return [];
     } catch (e) {
-      print('Erreur getUserFavorites: $e');
+      // Erreur getUserFavorites
       return [];
     }
   }

@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
 import 'package:surf_spots_app/services/auth_service.dart';
+import 'package:surf_spots_app/config/api_config.dart';
 
 class VisitedService {
-  static const String baseUrl = "http://10.0.2.2:4000/api/spot";
+  static String get baseUrl => ApiConfig.spotsUrl;
 
   static Dio get _dio => AuthService.authenticatedDio;
 
