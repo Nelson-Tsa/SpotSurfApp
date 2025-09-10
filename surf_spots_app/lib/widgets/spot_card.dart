@@ -50,8 +50,12 @@ class _SpotCardState extends State<SpotCard> {
               child: Column(
                 children: [
                   Text(
-                    widget.spot.name,
+                    widget.spot.name.length > 20
+                        ? '${widget.spot.name.substring(0, 20)}...'
+                        : widget.spot.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     widget.spot.description.length > 60

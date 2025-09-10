@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import '../models/surf_spot.dart';
 import '../services/spot_service.dart';
 import '../services/visited_service.dart';
+import '../services/auth_service.dart';
 
 class SpotsProvider with ChangeNotifier {
   List<SurfSpot> _allSpots = [];
@@ -49,6 +50,13 @@ class SpotsProvider with ChangeNotifier {
 
   // --- Charger l'état des likes pour tous les spots ---
   Future<void> _loadLikesState() async {
+    // Vérifier si l'utilisateur est connecté avant de faire des appels API
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (!isLoggedIn) {
+      developer.log('Utilisateur non connecté - skip chargement des likes', name: 'SpotsProvider');
+      return;
+    }
+    
     try {
       for (int i = 0; i < _allSpots.length; i++) {
         final spotId = int.parse(_allSpots[i].id);
@@ -101,6 +109,13 @@ class SpotsProvider with ChangeNotifier {
 
   // --- Toggle favorite avec synchronisation backend ---
   Future<void> toggleFavorite(SurfSpot spot) async {
+    // Vérifier si l'utilisateur est connecté
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (!isLoggedIn) {
+      developer.log('Utilisateur non connecté - impossible de liker', name: 'SpotsProvider');
+      return;
+    }
+    
     try {
       final spotId = int.parse(spot.id);
       final newLikedState = await LikeService.toggleLike(spotId);
@@ -131,6 +146,13 @@ class SpotsProvider with ChangeNotifier {
 
   // --- Historique ---
   Future<void> loadHistory() async {
+    // Vérifier si l'utilisateur est connecté
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (!isLoggedIn) {
+      developer.log('Utilisateur non connecté - skip chargement historique', name: 'SpotsProvider');
+      return;
+    }
+    
     try {
       final visited = await VisitedService.getVisited();
 
@@ -179,6 +201,13 @@ class SpotsProvider with ChangeNotifier {
   }
 
   Future<void> addToHistory(SurfSpot spot) async {
+    // Vérifier si l'utilisateur est connecté
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (!isLoggedIn) {
+      developer.log('Utilisateur non connecté - skip ajout historique', name: 'SpotsProvider');
+      return;
+    }
+    
     try {
       final int id = int.parse(spot.id);
       await VisitedService.addVisited(id);
@@ -223,6 +252,13 @@ class SpotsProvider with ChangeNotifier {
   }
 
   Future<void> removeFromHistory(dynamic visitedId) async {
+    // Vérifier si l'utilisateur est connecté
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (!isLoggedIn) {
+      developer.log('Utilisateur non connecté - skip suppression historique', name: 'SpotsProvider');
+      return;
+    }
+    
     try {
       final int id = visitedId is String ? int.parse(visitedId) : visitedId;
       await VisitedService.deleteVisited(id);
