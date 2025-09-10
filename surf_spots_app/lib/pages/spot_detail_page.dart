@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:surf_spots_app/models/surf_spot.dart';
-import 'dart:io';
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
 import 'package:surf_spots_app/providers/spots_provider.dart';
-import 'package:http/http.dart' as http;
 import 'package:surf_spots_app/widgets/container_forms.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:surf_spots_app/services/auth_service.dart';
@@ -62,10 +60,10 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
         LikeService.getLikesCount(spotId),
         LikeService.isLiked(spotId),
       ]);
-      
+
       final count = futures[0] as int;
       final isLiked = futures[1] as bool;
-      
+
       if (mounted) {
         setState(() {
           _spot.likesCount = count;
@@ -73,7 +71,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
         });
       }
     } catch (e) {
-      print('Erreur lors du chargement des likes: $e');
       if (mounted) {
         setState(() {
           _spot.isLiked = false;
@@ -88,11 +85,10 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
       // Utiliser directement le Provider qui gère la synchronisation backend
       final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
       await spotsProvider.toggleFavorite(_spot);
-      
+
       // Recharger les données locales depuis le backend pour être sûr
       await _loadLikeData();
     } catch (e) {
-      print('Erreur lors du toggle like: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -102,12 +98,6 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
         );
       }
     }
-  }
-
-  void _removeExistingImage(String imgBase64) {
-    setState(() {
-      _existingImagesBase64.remove(imgBase64);
-    });
   }
 
   Widget _buildLevelIndicator(int level) {
@@ -243,6 +233,9 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
       final response = await AuthService.authenticatedDio.delete(
         'http://10.0.2.2:4000/api/spot/delete/$spotId',
       );
+
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         Navigator.of(context).pop(true);
       } else {
@@ -255,6 +248,8 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erreur de connexion: $e')));
@@ -385,6 +380,13 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                                       return;
                                     }
 
+                                    // Capturer le contexte AVANT l'opération asynchrone
+                                    final navigatorContext = Navigator.of(
+                                      context,
+                                    );
+                                    final scaffoldMessengerContext =
+                                        ScaffoldMessenger.of(context);
+
                                     // Ajoute les nouvelles images à la liste finale
                                     List<String> allImagesBase64 = [
                                       ..._existingImagesBase64,
@@ -410,46 +412,64 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
 
                                     setModalState(() => _isSubmitting = true);
 
-                                    final response = await AuthService
-                                        .authenticatedDio
-                                        .put(
-                                          'http://10.0.2.2:4000/api/spot/update/${_spot.id}',
-                                          data: jsonEncode({
-                                            'name': _spotController.text,
-                                            'city': _villeController.text,
-                                            'description':
-                                                _descriptionController.text,
-                                            'gps': _gpsController.text,
-                                            'level': _selectedNiveau,
-                                            'difficulty': _selectedDifficulte,
-                                            'images': allImagesBase64,
-                                          }),
-                                        );
-                                    setModalState(() => _isSubmitting = false);
-
-                                    if (response.statusCode == 200) {
-                                      final updatedSpot = SurfSpot.fromJson(
-                                        response.data['spot'],
+                                    try {
+                                      final response = await AuthService
+                                          .authenticatedDio
+                                          .put(
+                                            'http://10.0.2.2:4000/api/spot/update/${_spot.id}',
+                                            data: jsonEncode({
+                                              'name': _spotController.text,
+                                              'city': _villeController.text,
+                                              'description':
+                                                  _descriptionController.text,
+                                              'gps': _gpsController.text,
+                                              'level': _selectedNiveau,
+                                              'difficulty': _selectedDifficulte,
+                                              'images': allImagesBase64,
+                                            }),
+                                          );
+                                      setModalState(
+                                        () => _isSubmitting = false,
                                       );
-                                      setState(() {
-                                        _spot = updatedSpot;
-                                        _existingImagesBase64 =
-                                            List<String>.from(
-                                              _spot.imageBase64,
-                                            );
-                                        _images.clear();
-                                      });
 
-                                      // Retourne le spot mis à jour à la page précédente
-                                      Navigator.of(context).pop();
-                                      Navigator.of(context).pop(updatedSpot);
-                                    } else {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
+                                      if (!mounted) return;
+
+                                      if (response.statusCode == 200) {
+                                        final updatedSpot = SurfSpot.fromJson(
+                                          response.data['spot'],
+                                        );
+                                        setState(() {
+                                          _spot = updatedSpot;
+                                          _existingImagesBase64 =
+                                              List<String>.from(
+                                                _spot.imageBase64,
+                                              );
+                                          _images.clear();
+                                        });
+
+                                        // Utiliser les contextes capturés
+                                        navigatorContext.pop();
+                                        navigatorContext.pop(updatedSpot);
+                                      } else {
+                                        scaffoldMessengerContext.showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Erreur lors de la modification',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      setModalState(
+                                        () => _isSubmitting = false,
+                                      );
+
+                                      if (!mounted) return;
+
+                                      scaffoldMessengerContext.showSnackBar(
+                                        SnackBar(
                                           content: Text(
-                                            'Erreur lors de la modification',
+                                            'Erreur de connexion: $e',
                                           ),
                                         ),
                                       );

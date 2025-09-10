@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/custom_input_field.dart';
-import '../widgets/return_button.dart';
 import '../services/auth_service.dart';
 import '../providers/spots_provider.dart';
 import 'package:surf_spots_app/constants/colors.dart';
@@ -41,6 +40,8 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = false);
 
+    if (!mounted) return;
+
     if (result['success']) {
       _showMessage(result['message'], Colors.green);
 
@@ -49,6 +50,8 @@ class _LoginPageState extends State<LoginPage> {
         context,
         listen: false,
       ).refreshAfterLogin();
+
+      if (!mounted) return;
 
       // Callback si fourni
       if (widget.onLoginSuccess != null) {
