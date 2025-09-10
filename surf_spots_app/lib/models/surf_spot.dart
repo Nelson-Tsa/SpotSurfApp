@@ -26,10 +26,10 @@ class SurfSpot {
 
   factory SurfSpot.fromJson(Map<String, dynamic> json) {
     return SurfSpot(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      city: json['city'],
+      id: json['id'].toString(), // Convertir en String
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      city: json['city'] ?? '',
       level: int.tryParse(json['level'].toString()) ?? 1,
       difficulty: int.tryParse(json['difficulty'].toString()) ?? 1,
       imageBase64: json['images'] != null
@@ -39,9 +39,9 @@ class SurfSpot {
                 .cast<String>()
                 .toList()
           : [],
-      userId: json['userId'] ?? 0, // <-- Assurez-vous de gérer ce champ
-      likesCount: json['likesCount'] ?? 0, // récupère le nombre de likes si disponible
-      isLiked: json['isLiked'],           // récupère le statut like si disponible
+      userId: json['user_id'] ?? json['userId'] ?? 0, // Gérer les deux formats
+      likesCount: json['likesCount'] ?? 0,
+      isLiked: json['isLiked'],
     );
   }
 }

@@ -23,16 +23,16 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		publicUserRoutes.DELETE("/delete", handler.DeleteSpot)
 		// publicUserRoutes.GET("/spot/:id", handler.GetSpotByID)
 
-		// TEMPORAIRE: Routes publiques pour les tests
+		// Routes publiques pour les compteurs (pas besoin d'auth pour voir le nombre de likes)
 		publicUserRoutes.GET("/likes/:id", handler.GetLikesCount)
-		publicUserRoutes.POST("/like/:id", handler.ToggleLike) // Temporaire
 	}
 
 	// Routes protégées pour les likes (authentification requise)
-	// TODO: Remettre ToggleLike ici une fois l'authentification Dio configurée
 	protectedSpotRoutes := router.Group("/api/spot")
 	protectedSpotRoutes.Use(userHandler.AuthRequired)
 	{
-		// protectedSpotRoutes.POST("/like/:id", handler.ToggleLike) // À remettre plus tard
+		protectedSpotRoutes.POST("/like/:id", handler.ToggleLike)
+		protectedSpotRoutes.GET("/isliked/:id", handler.IsLiked)
+		protectedSpotRoutes.GET("/favorites", handler.GetUserFavorites)
 	}
 }

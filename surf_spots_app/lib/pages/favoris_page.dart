@@ -19,7 +19,7 @@ class FavorisPage extends StatelessWidget {
           // Placeholder personnalisé pour la page Favoris
           SearchBarSpot(hintText: hintText),
           const SizedBox(height: 0.5),
-          const Expanded(child: GalleryPage()),
+          const Expanded(child: GalleryPage(showFavoritesOnly: true)),
         ],
       ),
     );

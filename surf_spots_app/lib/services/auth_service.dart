@@ -10,7 +10,34 @@ class AuthService {
   static const String _baseUrl = 'http://10.0.2.2:4000/api/users';
   static const String _loginKey = 'is_logged_in';
 
-  static final Dio _dio = Dio()..interceptors.add(CookieManager(CookieJar()));
+  static final Dio _dio = Dio();
+  static final CookieJar _cookieJar = CookieJar();
+
+  static bool _initialized = false;
+
+  static void _initializeDio() {
+    if (_initialized) return;
+    
+    _dio.options.baseUrl = 'http://10.0.2.2:4000';
+    _dio.interceptors.clear();
+    _dio.interceptors.add(CookieManager(_cookieJar));
+    
+    // Ajouter des logs pour débugger
+    _dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      requestHeader: true,
+      responseHeader: true,
+    ));
+    
+    _initialized = true;
+  }
+
+  // Getter public pour accéder à l'instance Dio authentifiée
+  static Dio get authenticatedDio {
+    _initializeDio();
+    return _dio;
+  }
 
   static Future<Map<String, dynamic>> login({
     required String email,

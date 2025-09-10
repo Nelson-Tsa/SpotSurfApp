@@ -26,17 +26,30 @@ class _SpotCardState extends State<SpotCard> {
   Future<void> _loadLikes() async {
     try {
       final spotId = int.parse(widget.spot.id);
-      final count = await LikeService.getLikesCount(spotId);
+
+      // Récupérer le compteur et l'état du like en parallèle
+      final futures = await Future.wait([
+        LikeService.getLikesCount(spotId),
+        LikeService.isLiked(spotId),
+      ]);
+
+      final count = futures[0] as int;
+      final isLiked = futures[1] as bool;
 
       if (mounted) {
         setState(() {
           widget.spot.likesCount = count;
-          // On ne fait pas de toggleLike ici, juste charger le count
-          widget.spot.isLiked ??= false; // Initialize à false si null
+          widget.spot.isLiked = isLiked;
         });
       }
     } catch (e) {
       print('Erreur lors du chargement des likes: $e');
+      // En cas d'erreur (pas connecté), initialiser à false
+      if (mounted) {
+        setState(() {
+          widget.spot.isLiked = false;
+        });
+      }
     }
   }
 

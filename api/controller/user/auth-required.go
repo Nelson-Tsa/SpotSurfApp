@@ -55,5 +55,7 @@ func (h *UserHandler) AuthRequired(ctx *gin.Context) {
 	}
 
 	ctx.Set("user", user)
+	ctx.Set("user_id", userID)  // Ajouter l'ID utilisateur pour les autres controllers
+	ctx.Set("role", user.Role)  // Ajouter le rôle si nécessaire
 	ctx.Next()
 }
