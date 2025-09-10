@@ -25,15 +25,13 @@ class _GalleryPageState extends State<GalleryPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<SpotsProvider>(context, listen: false);
 
-      // Charger les spots uniquement si on est dans les favoris ou l'historique
-      if (widget.showOnlyFavorites || widget.showHistory) {
-        await provider.loadSpots();
-      } else {
-        // Pour la compatibilité avec l'ancienne logique
+      // Charger les spots seulement si pas déjà en cache
+      if (!provider.hasCachedSpots) {
         await provider.loadSpots();
       }
 
-      if (widget.showHistory) {
+      // Charger l'historique seulement si nécessaire et pas déjà en cache
+      if (widget.showHistory && !provider.hasCachedHistory) {
         await provider.loadHistory();
       }
     });

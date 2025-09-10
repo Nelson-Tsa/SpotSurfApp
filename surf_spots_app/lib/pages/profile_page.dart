@@ -8,6 +8,7 @@ import 'package:surf_spots_app/pages/update_profile_page.dart';
 import 'package:surf_spots_app/pages/change_password_page.dart';
 import '../services/auth_service.dart';
 import '../providers/user_provider.dart';
+import '../providers/spots_provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -266,9 +267,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Sauvegarder le context avant les opérations async
                 final navigator = Navigator.of(context);
                 final userProvider = Provider.of<UserProvider>(context, listen: false);
+                final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
                 
-                // Nettoyer le UserProvider d'abord
+                // Nettoyer tous les providers et caches
                 userProvider.clearUser();
+                spotsProvider.clearCache();
 
                 // Ensuite déconnecter
                 await AuthService.logout();

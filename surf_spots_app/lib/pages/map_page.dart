@@ -388,6 +388,10 @@ class MapPageState extends State<MapPage> {
 
         // Recharge les markers depuis la BDD
         await fetchSpotsAndMarkers();
+        
+        // Rafraîchir les caches des spots
+        final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
+        await spotsProvider.refreshAfterSpotCreation();
 
         setState(() {
           _pickedLocation = null; // Supprime le marker bleu

@@ -237,6 +237,10 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
+        // Supprimer le spot de toutes les listes (favoris, historique, etc.)
+        final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
+        spotsProvider.removeSpotFromAllLists(spotId);
+        
         Navigator.of(context).pop(true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
