@@ -11,6 +11,7 @@ import 'package:surf_spots_app/providers/spots_provider.dart';
 import 'package:surf_spots_app/widgets/container_forms.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
 import 'package:surf_spots_app/services/auth_service.dart';
+import 'package:surf_spots_app/services/spot_service.dart';
 import 'dart:io';
 
 class MapPage extends StatefulWidget {
@@ -117,6 +118,60 @@ class MapPageState extends State<MapPage> {
     );
   }
 
+  // Méthodes pour gérer les likes avec synchronisation backend
+  Future<void> _loadLikeData() async {
+    if (_selectedSpot == null) return;
+    
+    try {
+      final spotId = int.parse(_selectedSpot!.id);
+      final futures = await Future.wait([
+        LikeService.getLikesCount(spotId),
+        LikeService.isLiked(spotId),
+      ]);
+      
+      final count = futures[0] as int;
+      final isLiked = futures[1] as bool;
+      
+      if (mounted) {
+        setState(() {
+          _selectedSpot!.likesCount = count;
+          _selectedSpot!.isLiked = isLiked;
+        });
+      }
+    } catch (e) {
+      print('Erreur lors du chargement des likes: $e');
+      if (mounted) {
+        setState(() {
+          _selectedSpot!.isLiked = false;
+          _selectedSpot!.likesCount = 0;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    if (_selectedSpot == null) return;
+    
+    try {
+      // Utiliser directement le Provider qui gère la synchronisation backend
+      final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
+      await spotsProvider.toggleFavorite(_selectedSpot!);
+      
+      // Recharger les données locales depuis le backend pour être sûr
+      await _loadLikeData();
+    } catch (e) {
+      print('Erreur lors du toggle like: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour liker un spot'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> fetchSpotsAndMarkers() async {
     final response = await http.get(
       Uri.parse('http://10.0.2.2:4000/api/spot/spots'),
@@ -155,7 +210,7 @@ class MapPageState extends State<MapPage> {
                   markerId: MarkerId(spot.name),
                   position: LatLng(lat, lon),
                   infoWindow: InfoWindow(title: spot.name),
-                  onTap: () {
+                  onTap: () async {
                     setState(() {
                       _selectedSpot = spot;
                       _selectedSpotTitle = spot.name;
@@ -166,6 +221,8 @@ class MapPageState extends State<MapPage> {
                       _isAddingSpot = false;
                     });
                     _panelController.open();
+                    // Charger les données de likes depuis le backend
+                    await _loadLikeData();
                   },
                 ),
               );
@@ -214,12 +271,7 @@ class MapPageState extends State<MapPage> {
                         : Icons.favorite_border,
                     color: Colors.blue,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _selectedSpot!.isLiked =
-                          !(_selectedSpot!.isLiked ?? false);
-                    });
-                  },
+                  onPressed: _toggleLike,
                 ),
             ],
           ),
@@ -281,7 +333,7 @@ class MapPageState extends State<MapPage> {
                     const Icon(Icons.favorite, color: Colors.blue, size: 16),
                     const SizedBox(width: 4),
                     Text(
-                      "${_selectedSpot!.isLiked == true ? '1' : '0'} like${_selectedSpot!.isLiked == true ? '' : 's'}",
+                      "${_selectedSpot!.likesCount} like${_selectedSpot!.likesCount != 1 ? 's' : ''}",
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],

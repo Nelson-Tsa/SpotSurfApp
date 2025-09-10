@@ -35,11 +35,44 @@ class SpotsProvider with ChangeNotifier {
     try {
       _allSpots = await SpotService.fetchAllSpots();
       _filteredSpots = List.from(_allSpots);
+      
+      // Charger l'état des likes pour chaque spot
+      await _loadLikesState();
     } catch (e) {
       print('Error loading spots: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // --- Charger l'état des likes pour tous les spots ---
+  Future<void> _loadLikesState() async {
+    try {
+      for (int i = 0; i < _allSpots.length; i++) {
+        final spotId = int.parse(_allSpots[i].id);
+        
+        // Charger le compteur et l'état du like en parallèle
+        final futures = await Future.wait([
+          LikeService.getLikesCount(spotId),
+          LikeService.isLiked(spotId),
+        ]);
+        
+        final count = futures[0] as int;
+        final isLiked = futures[1] as bool;
+        
+        _allSpots[i].likesCount = count;
+        _allSpots[i].isLiked = isLiked;
+        
+        // Mettre à jour aussi dans filteredSpots
+        final filteredIndex = _filteredSpots.indexWhere((s) => s.id == _allSpots[i].id);
+        if (filteredIndex != -1) {
+          _filteredSpots[filteredIndex].likesCount = count;
+          _filteredSpots[filteredIndex].isLiked = isLiked;
+        }
+      }
+    } catch (e) {
+      print('Erreur lors du chargement des likes: $e');
     }
   }
 
@@ -65,18 +98,33 @@ class SpotsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Toggle favorite ---
-  void toggleFavorite(SurfSpot spot) {
-    final index = _allSpots.indexWhere((s) => s.id == spot.id);
-    if (index != -1) {
-      _allSpots[index].isLiked = !(_allSpots[index].isLiked ?? false);
+  // --- Toggle favorite avec synchronisation backend ---
+  Future<void> toggleFavorite(SurfSpot spot) async {
+    try {
+      final spotId = int.parse(spot.id);
+      final newLikedState = await LikeService.toggleLike(spotId);
+      
+      final index = _allSpots.indexWhere((s) => s.id == spot.id);
+      if (index != -1) {
+        _allSpots[index].isLiked = newLikedState;
 
-      final filteredIndex = _filteredSpots.indexWhere((s) => s.id == spot.id);
-      if (filteredIndex != -1) {
-        _filteredSpots[filteredIndex].isLiked = _allSpots[index].isLiked;
+        final filteredIndex = _filteredSpots.indexWhere((s) => s.id == spot.id);
+        if (filteredIndex != -1) {
+          _filteredSpots[filteredIndex].isLiked = newLikedState;
+        }
+
+        // Mettre à jour le compteur de likes
+        final count = await LikeService.getLikesCount(spotId);
+        _allSpots[index].likesCount = count;
+        if (filteredIndex != -1) {
+          _filteredSpots[filteredIndex].likesCount = count;
+        }
+
+        notifyListeners();
       }
-
-      notifyListeners();
+    } catch (e) {
+      print('Erreur lors du toggle favorite: $e');
+      // En cas d'erreur, ne pas changer l'état local
     }
   }
 

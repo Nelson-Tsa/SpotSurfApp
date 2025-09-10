@@ -10,6 +10,7 @@ class SurfSpot {
   final String gps; // <-- Ajoute ce champ
 
   bool? isLiked;
+  int likesCount; // Compteur de likes
 
   SurfSpot({
     required this.id,
@@ -22,6 +23,7 @@ class SurfSpot {
     required this.userId,
     required this.gps, // <-- Ajoute dans le constructeur
     this.isLiked,
+    this.likesCount = 0,
   });
 
   factory SurfSpot.fromJson(Map<String, dynamic> json) {
@@ -39,10 +41,10 @@ class SurfSpot {
                 .cast<String>()
                 .toList()
           : [],
-      userId:
-          json['user_id'] ?? 0, // <-- adapte selon le nom exact du champ JSON
-      gps: json['gps'] ?? '', // <-- Ajoute ici
-      isLiked: json['isLiked'], // optionnel selon ton API
+      userId: json['user_id'] ?? 0,
+      gps: json['gps'] ?? '',
+      isLiked: json['isLiked'],
+      likesCount: json['likesCount'] ?? 0,
     );
   }
 }

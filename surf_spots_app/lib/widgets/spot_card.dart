@@ -62,23 +62,33 @@ class _SpotCardState extends State<SpotCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (widget.showLike)
-                    IconButton(
-                      icon: Icon(
-                        widget.spot.isLiked ?? false
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: AppColors.primary,
-                      ),
-                      onPressed: () {
-                        if (widget.onFavoriteToggle != null) {
-                          widget.onFavoriteToggle!();
-                        } else {
-                          setState(() {
-                            widget.spot.isLiked =
-                                !(widget.spot.isLiked ?? false);
-                          });
-                        }
-                      },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${widget.spot.likesCount} likes',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            widget.spot.isLiked ?? false
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: AppColors.primary,
+                          ),
+                          onPressed: () async {
+                            if (widget.onFavoriteToggle != null) {
+                              widget.onFavoriteToggle!();
+                            } else {
+                              // Utiliser le Provider pour synchroniser avec le backend
+                              await Provider.of<SpotsProvider>(
+                                context,
+                                listen: false,
+                              ).toggleFavorite(widget.spot);
+                            }
+                          },
+                        ),
+                      ],
                     ),
                 ],
               ),

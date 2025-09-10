@@ -26,6 +26,9 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 	{
 		publicSpotRoutes.GET("/spots", handler.GetAllSpots)
 		// publicSpotRoutes.GET("/spot/:id", handler.GetSpotByID)
+		
+		// Routes publiques pour les compteurs de likes
+		publicSpotRoutes.GET("/likes/:id", handler.GetLikesCount)
 	}
 
 	// Routes protégées (nécessitent une authentification)
@@ -41,5 +44,10 @@ func SpotRoutes(router *gin.Engine, db *gorm.DB) {
 		protectedSpotRoutes.GET("/visited", handler.GetVisited)
 		protectedSpotRoutes.DELETE("/visited/:id", handler.DeleteVisited)
 		protectedSpotRoutes.DELETE("/visited/spot/:spotId", handler.DeleteVisitedBySpot)
+		
+		// Routes protégées pour les likes (authentification requise)
+		protectedSpotRoutes.POST("/like/:id", handler.ToggleLike)
+		protectedSpotRoutes.GET("/isliked/:id", handler.IsLiked)
+		protectedSpotRoutes.GET("/favorites", handler.GetUserFavorites)
 	}
 }

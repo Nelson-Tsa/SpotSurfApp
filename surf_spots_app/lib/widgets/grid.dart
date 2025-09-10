@@ -28,6 +28,9 @@ class _GalleryPageState extends State<GalleryPage> {
       // Charger les spots uniquement si on est dans les favoris ou l'historique
       if (widget.showOnlyFavorites || widget.showHistory) {
         await provider.loadSpots();
+      } else {
+        // Pour la compatibilité avec l'ancienne logique
+        await provider.loadSpots();
       }
 
       if (widget.showHistory) {

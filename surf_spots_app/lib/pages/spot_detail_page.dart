@@ -5,10 +5,12 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:surf_spots_app/providers/user_provider.dart';
+import 'package:surf_spots_app/providers/spots_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:surf_spots_app/widgets/container_forms.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:surf_spots_app/services/auth_service.dart'; // Import AuthService
+import 'package:surf_spots_app/services/auth_service.dart';
+import 'package:surf_spots_app/services/spot_service.dart';
 
 class SpotDetailPage extends StatefulWidget {
   final SurfSpot spot;
@@ -50,6 +52,56 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
     _selectedDifficulte = _spot.difficulty;
     _images = [];
     _existingImagesBase64 = List<String>.from(_spot.imageBase64);
+    _loadLikeData();
+  }
+
+  Future<void> _loadLikeData() async {
+    try {
+      final spotId = int.parse(_spot.id);
+      final futures = await Future.wait([
+        LikeService.getLikesCount(spotId),
+        LikeService.isLiked(spotId),
+      ]);
+      
+      final count = futures[0] as int;
+      final isLiked = futures[1] as bool;
+      
+      if (mounted) {
+        setState(() {
+          _spot.likesCount = count;
+          _spot.isLiked = isLiked;
+        });
+      }
+    } catch (e) {
+      print('Erreur lors du chargement des likes: $e');
+      if (mounted) {
+        setState(() {
+          _spot.isLiked = false;
+          _spot.likesCount = 0;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    try {
+      // Utiliser directement le Provider qui gère la synchronisation backend
+      final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
+      await spotsProvider.toggleFavorite(_spot);
+      
+      // Recharger les données locales depuis le backend pour être sûr
+      await _loadLikeData();
+    } catch (e) {
+      print('Erreur lors du toggle like: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour liker un spot'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
   }
 
   void _removeExistingImage(String imgBase64) {
@@ -550,14 +602,12 @@ class _SpotDetailPageState extends State<SpotDetailPage> {
                                   : Icons.favorite_border,
                               color: Colors.blue,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _spot.isLiked = !(_spot.isLiked ?? false);
-                              });
+                            onPressed: () async {
+                              await _toggleLike();
                             },
                           ),
                           Text(
-                            "${_spot.isLiked == true ? '1' : '0'} like${_spot.isLiked == true ? '' : 's'}",
+                            "${_spot.likesCount} like${_spot.likesCount == 1 ? '' : 's'}",
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.grey,
