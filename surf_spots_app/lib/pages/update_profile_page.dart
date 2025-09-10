@@ -113,7 +113,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
