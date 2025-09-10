@@ -298,7 +298,6 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _footerLink("Instructeur Léo"),
           _footerLink("Mentions Légales"),
           _footerLink("Nous contacter"),
         ],

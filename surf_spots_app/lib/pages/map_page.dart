@@ -161,7 +161,7 @@ class MapPageState extends State<MapPage> {
                           .toList()
                     : [],
                 userId: jsonSpot['user_id'], // Ajoute le userId
-                gps: jsonSpot['gps'] ?? '', // <-- Ajoute cette ligne
+                gps: jsonSpot['gps'] ?? '', 
               );
               _markers.add(
                 Marker(
