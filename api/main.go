@@ -35,6 +35,7 @@ func main() {
 	spot.SpotRoutes(r, db)
 
 	err = r.Run(fmt.Sprintf(":%s", configEnv.Port))
+	// err = r.Run(fmt.Sprintf("0.0.0.0:%s", configEnv.Port))
 	if err != nil {
 		log.Fatal("Failed to run server:", err)
 	}
