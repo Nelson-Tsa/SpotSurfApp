@@ -64,8 +64,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      if (index == 4) _profileKey = UniqueKey();
-      if (index != 2 && _isMapPanelOpen) _isMapPanelOpen = false;
+      if (index == 4) {
+        _profileKey = UniqueKey();
+      }
+      if (index != 2 && _isMapPanelOpen) {
+        _isMapPanelOpen = false;
+      }
     });
   }
 
@@ -77,26 +81,30 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final localStatus = await AuthService.isLoggedIn();
       if (!localStatus) {
-        if (mounted)
+        if (mounted) {
           Provider.of<UserProvider>(context, listen: false).clearUser();
+        }
         return false;
       }
 
       final user = await AuthService.getUser();
       if (user != null) {
-        if (mounted)
+        if (mounted) {
           Provider.of<UserProvider>(context, listen: false).setUser(user);
+        }
         return true;
       } else {
         await AuthService.logout();
-        if (mounted)
+        if (mounted) {
           Provider.of<UserProvider>(context, listen: false).clearUser();
+        }
         return false;
       }
     } catch (e) {
       await AuthService.logout();
-      if (mounted)
+      if (mounted) {
         Provider.of<UserProvider>(context, listen: false).clearUser();
+      }
       return false;
     }
   }

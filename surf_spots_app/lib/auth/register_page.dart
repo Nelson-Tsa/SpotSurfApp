@@ -43,26 +43,30 @@ class _RegisterPageState extends State<RegisterPage> {
       password: _passwordController.text,
     );
 
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
 
-    if (result['success']) {
-      _showMessage('Inscription réussie !');
-      // Optionnel : rediriger vers la page de connexion
-      Navigator.pushNamed(context, '/login');
-    } else {
-      _showMessage(result['error'], isError: true);
+      if (result['success']) {
+        _showMessage('Inscription réussie !');
+        // Optionnel : rediriger vers la page de connexion
+        Navigator.pushNamed(context, '/login');
+      } else {
+        _showMessage(result['error'], isError: true);
+      }
     }
   }
 
   void _showMessage(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError ? Colors.red : Colors.green,
+        ),
+      );
+    }
   }
 
   @override

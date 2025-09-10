@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -115,11 +116,11 @@ class AuthService {
 
   static Future<User?> getUser() async {
     try {
-      print('🔄 Appel de getUser() avec URL: $_baseUrl/user');
+      developer.log('🔄 Appel de getUser() avec URL: $_baseUrl/user', name: 'AuthService');
       final response = await _dio.get('/api/users/user');
 
-      print('📡 Status Code: ${response.statusCode}');
-      print('📊 Response Data: ${response.data}');
+      developer.log('📡 Status Code: ${response.statusCode}', name: 'AuthService');
+      developer.log('📊 Response Data: ${response.data}', name: 'AuthService');
 
       if (response.statusCode == 200 && response.data != null) {
         final userData = response.data['user'];

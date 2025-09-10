@@ -26,7 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     // Si l'utilisateur a mis à jour ses infos, on rafraîchit la page
-    if (result == true) {
+    if (result == true && mounted) {
       setState(() {
         _futureKey = UniqueKey();
       });
@@ -40,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     // Pas besoin de rafraîchir car le changement de mot de passe n'affecte pas l'affichage
-    if (result == true) {
+    if (result == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Mot de passe modifié avec succès'),
@@ -263,18 +263,19 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: TextButton(
               onPressed: () async {
+                // Sauvegarder le context avant les opérations async
+                final navigator = Navigator.of(context);
+                final userProvider = Provider.of<UserProvider>(context, listen: false);
+                
                 // Nettoyer le UserProvider d'abord
-                if (mounted) {
-                  Provider.of<UserProvider>(context, listen: false).clearUser();
-                }
+                userProvider.clearUser();
 
                 // Ensuite déconnecter
                 await AuthService.logout();
 
                 // Retourner à la page d'accueil (index 0)
                 if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
+                  navigator.pushAndRemoveUntil(
                     MaterialPageRoute(
                       builder: (context) =>
                           const HomeScreen(title: 'Surf Spots App'),

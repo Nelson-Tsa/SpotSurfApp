@@ -119,7 +119,8 @@ class MapPageState extends State<MapPage> {
     } catch (e) {
       debugPrint('Erreur lors du toggle like: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Vous devez être connecté pour liker un spot'),
             backgroundColor: Colors.orange,
@@ -287,41 +288,43 @@ class MapPageState extends State<MapPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_selectedSpot != null) {
+                    // Sauvegarder les références avant les opérations async
+                    final navigator = Navigator.of(context);
+                    final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
+                    
                     // Marquer le spot comme visité avant d'ouvrir les détails
-                    Provider.of<SpotsProvider>(
-                      context,
-                      listen: false,
-                    ).addToHistory(_selectedSpot!);
+                    spotsProvider.addToHistory(_selectedSpot!);
 
-                    final result = await Navigator.push(
-                      context,
+                    final result = await navigator.push(
                       MaterialPageRoute(
                         builder: (context) =>
                             SpotDetailPage(spot: _selectedSpot!),
                       ),
                     );
 
-                    if (result is SurfSpot) {
-                      // Le spot a été mis à jour, on met à jour les données locales
-                      setState(() {
-                        _selectedSpot = result;
-                        _selectedSpotTitle = result.name;
-                        _selectedSpotDescription = result.description;
-                        _selectedSpotCity = result.city;
-                      });
-                      // Rafraîchit la carte avec les nouvelles données
-                      await fetchSpotsAndMarkers();
-                    } else if (result == true) {
-                      // Le spot a été supprimé
-                      setState(() {
-                        _selectedSpot = null;
-                        _selectedSpotTitle = "Aucun spot sélectionné";
-                        _selectedSpotDescription =
-                            "Cliquez sur un marqueur pour voir les détails ici.";
-                        _selectedSpotCity = "";
-                      });
-                      _panelController.close();
-                      await fetchSpotsAndMarkers();
+                    if (mounted) {
+                      if (result is SurfSpot) {
+                        // Le spot a été mis à jour, on met à jour les données locales
+                        setState(() {
+                          _selectedSpot = result;
+                          _selectedSpotTitle = result.name;
+                          _selectedSpotDescription = result.description;
+                          _selectedSpotCity = result.city;
+                        });
+                        // Rafraîchit la carte avec les nouvelles données
+                        await fetchSpotsAndMarkers();
+                      } else if (result == true) {
+                        // Le spot a été supprimé
+                        setState(() {
+                          _selectedSpot = null;
+                          _selectedSpotTitle = "Aucun spot sélectionné";
+                          _selectedSpotDescription =
+                              "Cliquez sur un marqueur pour voir les détails ici.";
+                          _selectedSpotCity = "";
+                        });
+                        _panelController.close();
+                        await fetchSpotsAndMarkers();
+                      }
                     }
                   }
                 },
@@ -396,29 +399,35 @@ class MapPageState extends State<MapPage> {
           _isSubmitting = false;
         });
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Spot ajouté !')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Spot ajouté !')),
+          );
+        }
         _panelController.close();
       } else {
         setState(() {
           _isSubmitting = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur lors de l\'ajout du spot')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Erreur lors de l\'ajout du spot')),
+          );
+        }
       }
     } else {
       setState(() {
         _isSubmitting = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Veuillez remplir tous les champs, ajouter au moins une photo et choisir un point GPS',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Veuillez remplir tous les champs, ajouter au moins une photo et choisir un point GPS',
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -432,9 +441,11 @@ class MapPageState extends State<MapPage> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur lors de la sélection des images')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur lors de la sélection des images')),
+        );
+      }
     }
   }
 

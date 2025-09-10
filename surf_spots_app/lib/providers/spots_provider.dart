@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:developer' as developer;
 import '../models/surf_spot.dart';
 import '../services/spot_service.dart';
 import '../services/visited_service.dart';
@@ -39,7 +40,7 @@ class SpotsProvider with ChangeNotifier {
       // Charger l'état des likes pour chaque spot
       await _loadLikesState();
     } catch (e) {
-      print('Error loading spots: $e');
+      developer.log('Error loading spots: $e', name: 'SpotsProvider');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -72,7 +73,7 @@ class SpotsProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      print('Erreur lors du chargement des likes: $e');
+      developer.log('Erreur lors du chargement des likes: $e', name: 'SpotsProvider');
     }
   }
 
@@ -123,7 +124,7 @@ class SpotsProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Erreur lors du toggle favorite: $e');
+      developer.log('Erreur lors du toggle favorite: $e', name: 'SpotsProvider');
       // En cas d'erreur, ne pas changer l'état local
     }
   }
@@ -150,7 +151,7 @@ class SpotsProvider with ChangeNotifier {
           final removedId = int.tryParse(spot.id);
           if (removedId != null) {
             await VisitedService.deleteVisited(removedId);
-            print("🗑️ Cleaned old spot from DB on load: ${spot.id}");
+            developer.log("🗑️ Cleaned old spot from DB on load: ${spot.id}", name: 'SpotsProvider');
           }
         }
       }
@@ -169,11 +170,11 @@ class SpotsProvider with ChangeNotifier {
           ? SpotService.filterSpots(_history, _searchQuery)
           : List.from(_history);
 
-      print("✅ History loaded with ${_history.length} spots");
+      developer.log("✅ History loaded with ${_history.length} spots", name: 'SpotsProvider');
 
       notifyListeners();
     } catch (e) {
-      print('Error loading visited: $e');
+      developer.log('Error loading visited: $e', name: 'SpotsProvider');
     }
   }
 
@@ -181,7 +182,7 @@ class SpotsProvider with ChangeNotifier {
     try {
       final int id = int.parse(spot.id);
       await VisitedService.addVisited(id);
-      print("➕ Added spot to visited: ${spot.id}");
+      developer.log("➕ Added spot to visited: ${spot.id}", name: 'SpotsProvider');
 
       // Supprimer l'ancienne entrée si déjà présente
       _history.removeWhere((s) => s.id == spot.id);
@@ -195,8 +196,8 @@ class SpotsProvider with ChangeNotifier {
           await VisitedService.deleteVisitedBySpot(
             removedId,
           ); // <- ici tu appelles la nouvelle route
-          print(
-            "🗑️ Removed oldest spot to keep history at 5: ${removedSpot.id}",
+          developer.log(
+            "🗑️ Removed oldest spot to keep history at 5: ${removedSpot.id}", name: 'SpotsProvider',
           );
         }
       }
@@ -213,11 +214,11 @@ class SpotsProvider with ChangeNotifier {
           ? SpotService.filterSpots(_history, _searchQuery)
           : List.from(_history);
 
-      print("📜 Current history length: ${_history.length}");
+      developer.log("📜 Current history length: ${_history.length}", name: 'SpotsProvider');
 
       notifyListeners();
     } catch (e) {
-      print('Error adding to visited: $e');
+      developer.log('Error adding to visited: $e', name: 'SpotsProvider');
     }
   }
 
@@ -231,11 +232,11 @@ class SpotsProvider with ChangeNotifier {
           ? SpotService.filterSpots(_history, _searchQuery)
           : List.from(_history);
 
-      print("🗑️ Manually removed spot from history: $id");
+      developer.log("🗑️ Manually removed spot from history: $id", name: 'SpotsProvider');
 
       notifyListeners();
     } catch (e) {
-      print('Error removing from visited: $e');
+      developer.log('Error removing from visited: $e', name: 'SpotsProvider');
     }
   }
 
