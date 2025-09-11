@@ -86,7 +86,7 @@ flutter run
 
 <p align="center"><b>Contributeurs</b></p>
 
-<table>
+<table align="center">
 <tr>
 <td valign="top">
   
