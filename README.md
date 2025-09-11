@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="https://res.cloudinary.com/dxewdbsyg/image/upload/v1757580779/vague_1_qolgvu.png" alt="Logo" />
+</p>
 
 # Spot Surf App
 
