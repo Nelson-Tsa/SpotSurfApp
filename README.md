@@ -83,10 +83,8 @@ flutter run
 - Ajoutez aux favoris, marquez comme visité, etc
 
 
-## Contributeurs
+| ## Contributeurs |  |
+|--|--|
+| - [@Nelson-Tsa](https://github.com/Nelson-Tsa)<br> - [@ewhalgand](https://github.com/ewhalgand)<br> - [@Mlheriteau](https://github.com/Mlheriteau)<br> - [@LeoV0](https://github.com/LeoV0) | <img src="https://res.cloudinary.com/dxewdbsyg/image/upload/v1757581132/SurfPlancheGOOD_1_e3y2sh.png" alt="Logo" width="140"/> |
 
-- [@Nelson-Tsa](https://github.com/Nelson-Tsa)
-- [@ewhalgand](https://github.com/ewhalgand)
-- [@Mlheriteau](https://github.com/Mlheriteau)
-- [@LeoV0](https://github.com/LeoV0)
 
