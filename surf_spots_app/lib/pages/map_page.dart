@@ -15,8 +15,9 @@ import 'package:surf_spots_app/services/spot_service.dart';
 
 class MapPage extends StatefulWidget {
   final Function(bool)? onPanelStateChanged;
+  final Function(int)? onNavigateToTab;
 
-  const MapPage({super.key, this.onPanelStateChanged});
+  const MapPage({super.key, this.onPanelStateChanged, this.onNavigateToTab});
 
   @override
   State<MapPage> createState() => MapPageState();
@@ -37,10 +38,14 @@ class MapPageState extends State<MapPage> {
   bool _isPanelOpen = false;
   bool _isAddingSpot = false;
   bool _isSubmitting = false;
+  bool _isUserLoggedIn = false;
   
-  void openAddSpotPanel() {
+  Future<void> openAddSpotPanel() async {
+    // Vérifier si l'utilisateur est connecté avant d'ouvrir le formulaire
+    final isLoggedIn = await AuthService.isLoggedIn();
     setState(() {
       _isAddingSpot = true;
+      _isUserLoggedIn = isLoggedIn;
     });
     _panelController.open();
   }
@@ -598,7 +603,8 @@ class MapPageState extends State<MapPage> {
             ),
             Expanded(
               child: _isAddingSpot
-                  ? ContainerForms(
+                  ? (_isUserLoggedIn 
+                      ? ContainerForms(
                       formKey: _formKey,
                       gpsController: _gpsController,
                       villeController: _villeController,
@@ -630,6 +636,48 @@ class MapPageState extends State<MapPage> {
                       onRemoveImage: _removeImage,
                       onRemoveExistingImage: (_) {}, // <-- AJOUTE CETTE LIGNE
                     )
+                      : Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.login,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  "Connectez-vous pour ajouter un spot",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[600],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    // Fermer le panel et naviguer vers l'onglet profil (index 4)
+                                    _panelController.close();
+                                    widget.onNavigateToTab?.call(4);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child: const Text("Se connecter"),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ))
                   : buildSpotDetailsPanel(),
             ),
           ],

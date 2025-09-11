@@ -123,7 +123,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       const ExplorePage(),
-      MapPage(key: _mapPageKey, onPanelStateChanged: _onMapPanelStateChanged),
+      MapPage(
+        key: _mapPageKey, 
+        onPanelStateChanged: _onMapPanelStateChanged,
+        onNavigateToTab: (index) => setState(() => _selectedIndex = index),
+      ),
       const FavorisPage(),
       FutureBuilder<bool>(
         key: _profileKey,
