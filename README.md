@@ -84,13 +84,16 @@ flutter run
 
 
 
-<p align="center"><b>Contributeurs</b></p>
+<h2 align="center"><b>Contributeurs</b></h2>
 
 <table align="center">
 <tr>
 <td valign="top">
   
 <ul>
+<br>
+  <br>
+  <br>
   <li><a href="https://github.com/Nelson-Tsa">@Nelson-Tsa</a></li>
   <li><a href="https://github.com/ewhalgand">@ewhalgand</a></li>
   <li><a href="https://github.com/Mlheriteau">@Mlheriteau</a></li>
