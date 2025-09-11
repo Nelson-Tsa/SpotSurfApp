@@ -66,6 +66,15 @@ cd surf_spots_app
 flutter pub get
 ```
 
+Installer Android Studio et créer un émulateur
+Démarrer votre émulateur (soit via android studio ou soit via vscode)
+Commande vscode : 
+
+```bash
+flutter emulators --launch <L'id de votre émulateur>
+flutter emulators --launch Pixel_6a - exemple
+```
+
 Lancez l'app :
 
 ```bash
