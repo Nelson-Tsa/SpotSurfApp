@@ -83,23 +83,26 @@ flutter run
 - Ajoutez aux favoris, marquez comme visité, etc
 
 
-<h2 align="center">Contributeurs</h2>
 
-<div align="center">
-  <div style="display: flex; align-items: center; justify-content: center;">
-    <div>
-      <ul align="left">
-        <li><a href="https://github.com/Nelson-Tsa">@Nelson-Tsa</a></li>
-        <li><a href="https://github.com/ewhalgand">@ewhalgand</a></li>
-        <li><a href="https://github.com/Mlheriteau">@Mlheriteau</a></li>
-        <li><a href="https://github.com/LeoV0">@LeoV0</a></li>
-      </ul>
-    </div>
-    <div>
-      <img src="https://res.cloudinary.com/dxewdbsyg/image/upload/v1757581132/SurfPlancheGOOD_1_e3y2sh.png" alt="Logo" width="140"/>
-    </div>
-  </div>
-</div>
+<p align="center"><b>Contributeurs</b></p>
+
+<table>
+<tr>
+<td valign="top">
+  
+<ul>
+  <li><a href="https://github.com/Nelson-Tsa">@Nelson-Tsa</a></li>
+  <li><a href="https://github.com/ewhalgand">@ewhalgand</a></li>
+  <li><a href="https://github.com/Mlheriteau">@Mlheriteau</a></li>
+  <li><a href="https://github.com/LeoV0">@LeoV0</a></li>
+</ul>
+</td>
+<td>
+  <img src="https://res.cloudinary.com/dxewdbsyg/image/upload/v1757581132/SurfPlancheGOOD_1_e3y2sh.png" alt="Logo" width="140"/>
+</td>
+</tr>
+</table>
+
 
 
 
