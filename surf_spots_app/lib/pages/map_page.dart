@@ -76,9 +76,63 @@ class MapPageState extends State<MapPage> {
     fetchSpotsAndMarkers();
   }
 
+  // Méthode pour nettoyer les données de la map lors de la déconnexion
+  void clearMapData() {
+    setState(() {
+      _markers.clear();
+      _selectedSpot = null;
+      _selectedSpotTitle = "Aucun spot sélectionné";
+      _selectedSpotDescription = "Cliquez sur un marqueur pour voir les détails ici.";
+      _selectedSpotCity = "";
+      _pickedLocation = null;
+      _isAddingSpot = false;
+      _isSubmitting = false;
+      _isPickingLocation = false;
+      
+      // Nettoyer les formulaires
+      _villeController.clear();
+      _spotController.clear();
+      _descriptionController.clear();
+      _gpsController.clear();
+      _images.clear();
+      _selectedNiveau = null;
+      _selectedDifficulte = null;
+    });
+    
+    // Fermer le panel s'il est ouvert
+    if (_panelController.isPanelOpen) {
+      _panelController.close();
+    }
+  }
+
   // Méthodes pour gérer les likes avec synchronisation backend
   Future<void> _loadLikeData() async {
     if (_selectedSpot == null) return;
+    
+    // Vérifier si l'utilisateur est connecté avant de charger les likes personnels
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (!isLoggedIn) {
+      // Si pas connecté, charger quand même le compteur global mais pas l'état personnel
+      try {
+        final spotId = int.parse(_selectedSpot!.id);
+        final count = await LikeService.getLikesCount(spotId);
+        
+        if (mounted) {
+          setState(() {
+            _selectedSpot!.isLiked = false; // Pas de like personnel
+            _selectedSpot!.likesCount = count; // Mais on garde le compteur global
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _selectedSpot!.isLiked = false;
+            _selectedSpot!.likesCount = 0;
+          });
+        }
+      }
+      return;
+    }
     
     try {
       final spotId = int.parse(_selectedSpot!.id);
@@ -341,6 +395,20 @@ class MapPageState extends State<MapPage> {
   Future<void> _validateAndAddSpot() async {
     if (_isSubmitting) return;
 
+    // Vérifier si l'utilisateur est connecté avant de créer un spot
+    final isLoggedIn = await AuthService.isLoggedIn();
+    if (!isLoggedIn) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour ajouter un spot'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });
@@ -353,70 +421,82 @@ class MapPageState extends State<MapPage> {
       setState(() {
         _isSubmitting = true;
       });
-      // 1. Envoie le spot au backend
-      final spotResponse = await AuthService.authenticatedDio.post(
-        '/api/spot/create',
-        data: {
-          'name': _spotController.text,
-          'city': _villeController.text,
-          'description': _descriptionController.text,
-          'level': _selectedNiveau,
-          'difficulty': _selectedDifficulte,
-          'gps': "${_pickedLocation!.latitude},${_pickedLocation!.longitude}",
-        },
-      );
+      
+      try {
+        // 1. Envoie le spot au backend
+        final spotResponse = await AuthService.authenticatedDio.post(
+          '/api/spot/create',
+          data: {
+            'name': _spotController.text,
+            'city': _villeController.text,
+            'description': _descriptionController.text,
+            'level': _selectedNiveau,
+            'difficulty': _selectedDifficulte,
+            'gps': "${_pickedLocation!.latitude},${_pickedLocation!.longitude}",
+          },
+        );
 
-      if (spotResponse.statusCode == 201) {
-        final spotData = spotResponse.data;
-        final spotId = spotData['id']; // récupère l'ID du spot créé
+        if (spotResponse.statusCode == 201) {
+          final spotData = spotResponse.data;
+          final spotId = spotData['id']; // récupère l'ID du spot créé
 
-        // 2. Envoie chaque image au backend
-        for (var image in _images) {
-          final bytes = await image.readAsBytes();
-          final base64Image = base64Encode(bytes);
+          // 2. Envoie chaque image au backend
+          for (var image in _images) {
+            final bytes = await image.readAsBytes();
+            final base64Image = base64Encode(bytes);
 
-          try {
-            await AuthService.authenticatedDio.post(
-              '/api/spot/images',
-              data: {'spot_id': spotId, 'image_data': base64Image},
+            try {
+              await AuthService.authenticatedDio.post(
+                '/api/spot/images',
+                data: {'spot_id': spotId, 'image_data': base64Image},
+              );
+            } catch (e) {
+              // Continue with other images even if one fails
+              debugPrint('Error uploading image: $e');
+            }
+          }
+
+          // Recharge les markers depuis la BDD
+          await fetchSpotsAndMarkers();
+          
+          // Rafraîchir les caches des spots
+          final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
+          await spotsProvider.refreshAfterSpotCreation();
+
+          setState(() {
+            _pickedLocation = null; // Supprime le marker bleu
+            // Réinitialise la sélection du spot
+            _selectedSpot = null;
+            _selectedSpotTitle = "Aucun spot sélectionné";
+            _selectedSpotDescription =
+                "Cliquez sur un marqueur pour voir les détails ici.";
+            _selectedSpotCity = "";
+            _isSubmitting = false;
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Spot ajouté !')),
             );
-          } catch (e) {
-            // Continue with other images even if one fails
-            debugPrint('Error uploading image: $e');
+          }
+          _panelController.close();
+        } else {
+          setState(() {
+            _isSubmitting = false;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Erreur lors de l\'ajout du spot')),
+            );
           }
         }
-
-        // Recharge les markers depuis la BDD
-        await fetchSpotsAndMarkers();
-        
-        // Rafraîchir les caches des spots
-        final spotsProvider = Provider.of<SpotsProvider>(context, listen: false);
-        await spotsProvider.refreshAfterSpotCreation();
-
-        setState(() {
-          _pickedLocation = null; // Supprime le marker bleu
-          // Réinitialise la sélection du spot
-          _selectedSpot = null;
-          _selectedSpotTitle = "Aucun spot sélectionné";
-          _selectedSpotDescription =
-              "Cliquez sur un marqueur pour voir les détails ici.";
-          _selectedSpotCity = "";
-          _isSubmitting = false;
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Spot ajouté !')),
-          );
-        }
-        _panelController.close();
-      } else {
+      } catch (e) {
         setState(() {
           _isSubmitting = false;
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Erreur lors de l\'ajout du spot')),
+            SnackBar(content: Text('Erreur lors de l\'ajout du spot: $e')),
           );
         }
       }

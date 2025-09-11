@@ -276,7 +276,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Ensuite déconnecter
                 await AuthService.logout();
 
-                // Retourner à la page d'accueil (index 0)
+                // Retourner à la page d'accueil (index 0) avec nettoyage complet
                 if (mounted) {
                   navigator.pushAndRemoveUntil(
                     MaterialPageRoute(
