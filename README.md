@@ -71,7 +71,7 @@ Démarrer votre émulateur (soit via android studio ou soit via vscode)
 Commande vscode : 
 
 ```bash
-flutter emulators --launch <L'id de votre émulateur>
+flutter emulators --launch "L'id de votre émulateur"
 flutter emulators --launch Pixel_6a - exemple
 ```
 
