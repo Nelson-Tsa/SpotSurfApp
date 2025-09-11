@@ -93,7 +93,6 @@ flutter run
 <ul>
 <br>
   <br>
-  <br>
   <li><a href="https://github.com/Nelson-Tsa">@Nelson-Tsa</a></li>
   <li><a href="https://github.com/ewhalgand">@ewhalgand</a></li>
   <li><a href="https://github.com/Mlheriteau">@Mlheriteau</a></li>
