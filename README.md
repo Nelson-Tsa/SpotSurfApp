@@ -109,7 +109,7 @@ flutter run
 </ul>
 </td>
 <td>
-  <img src="https://res.cloudinary.com/dxewdbsyg/image/upload/v1757581132/SurfPlancheGOOD_1_e3y2sh.png" alt="Logo" width="140"/>
+  <img src="https://res.cloudinary.com/dxewdbsyg/image/upload/v1757582992/SurfPlancheGOOD_1_1_roenjo.png" alt="Logo" width="140"/>
 </td>
 </tr>
 </table>
